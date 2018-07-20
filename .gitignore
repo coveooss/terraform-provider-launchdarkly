@@ -1,0 +1,5 @@
+terraform.tfstate
+terraform.tfstate.backup
+vendor
+terraform-provider-launchdarkly
+.terraform
