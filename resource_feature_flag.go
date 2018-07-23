@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
+	"errors"
 )
 
 func resourceFeatureFlag() *schema.Resource {
@@ -38,6 +39,10 @@ func resourceFeatureFlag() *schema.Resource {
 				Optional: true,
 				Default: false,
 			},
+			"custom_properties": &schema.Schema{
+				Type:     schema.TypeMap,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -51,6 +56,12 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	description := d.Get("description").(string)
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
+	customProperties := d.Get("custom_properties").(map[string]interface{})
+
+	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
+	if err != nil {
+		return err
+	}
 
 	payload := map[string]interface{}{
 		"name":  name,
@@ -58,9 +69,10 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		"description": description,
 		"temporary": temporary,
 		"includeInSnippet": includeInSnippet,
+		"customProperties": transformedCustomProperties,
 	}
 
-	err := client.Post("/flags/"+project, payload, map[int]bool{201: true}, nil)
+	err = client.Post("/flags/"+project, payload, map[int]bool{201: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -89,11 +101,14 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
+	transformedCustomProperties := transformCustomPropertiesFromLaunchDarklyFormat(payload["customProperties"])
+
 	d.Set("name", payload["name"])
 	d.Set("key", payload["key"])
 	d.Set("description", payload["description"])
 	d.Set("temporary", payload["temporary"])
 	d.Set("include_in_snippet", payload["includeInSnippet"])
+	d.Set("custom_properties", transformedCustomProperties)
 
 	return nil
 }
@@ -106,6 +121,12 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 	description := d.Get("description").(string)
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
+	customProperties := d.Get("custom_properties").(map[string]interface{})
+
+	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
+	if err != nil {
+		return err
+	}
 
 	payload := []map[string]interface{}{{
 		"op":    "replace",
@@ -123,9 +144,13 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 		"op":    "replace",
 			"path":  "/includeInSnippet",
 			"value": includeInSnippet,
+	}, {
+		"op":    "replace",
+		"path":  "/customProperties",
+		"value": transformedCustomProperties,
 	}}
 
-	err := client.Patch("/flags/"+project+"/"+d.Id(), payload, map[int]bool{200: true}, nil)
+	err = client.Patch("/flags/"+project+"/"+d.Id(), payload, map[int]bool{200: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -144,4 +169,41 @@ func resourceFeatureFlagDelete(d *schema.ResourceData, m interface{}) error {
 	}
 
 	return nil
+}
+
+func transformCustomPropertiesFromTerraformFormat(properties map[string]interface{}) (interface{}, error) {
+	transformed := make(map[string]interface{})
+
+	for key, value := range properties {
+		sub := make(map[string]interface{})
+		sub["name"] = key
+
+		switch value.(type) {
+		case string:
+			sub["value"] = []string { value.(string) }
+		default:
+			return transformed, errors.New("Custom property " + key + " must have value of type string")
+		}
+
+		transformed[key] = sub
+	}
+
+	return transformed, nil
+}
+
+func transformCustomPropertiesFromLaunchDarklyFormat(properties interface{}) interface{} {
+	transformed := make(map[string]interface{})
+
+	for key, body := range properties.(map[string]interface{}) {
+		values := body.(map[string]interface{})["value"].([]interface{})
+
+		if len(values) != 1 {
+			println("Skipping custom property " + key + " because it has multiple values")
+			continue
+		}
+
+		transformed[key] = values[0].(string)
+	}
+
+	return transformed
 }

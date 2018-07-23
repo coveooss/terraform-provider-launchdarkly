@@ -26,4 +26,7 @@ resource "launchdarkly_feature_flag" "my-flag" {
   key = "my-flag"
   name = "My Super Flag"
   description = "description!!"
+  custom_properties = {
+    "some.property" = "blah"
+  }
 }
