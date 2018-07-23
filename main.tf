@@ -20,3 +20,10 @@ resource "launchdarkly_environment" "hipaa" {
   key = "hipaa"
   color = "FF00FF"
 }
+
+resource "launchdarkly_feature_flag" "my-flag" {
+  project_key = "${launchdarkly_project.my-project.key}"
+  key = "my-flag"
+  name = "My Super Flag"
+  description = "description!!"
+}
