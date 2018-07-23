@@ -1,23 +1,10 @@
 package launchdarkly
 
-import "strconv"
+import (
+	"strconv"
+)
 
 const dummyEnvironmentKey = "dummy-environment"
-
-func isThereOnlyOneEnvironment(client Client, project string) (bool, error) {
-	payload := make(map[string]interface{})
-
-	err := client.Get("/projects/"+project, map[int]bool{200: true}, &payload)
-	if err != nil {
-		return false, err
-	}
-
-	environments := payload["environments"].([]interface{})
-
-	println("There are currently " + strconv.Itoa(len(environments)) + " environments in project " + project)
-
-	return len(environments) == 1, nil
-}
 
 func getEnvironmentKeys(client Client, project string) ([]string, error) {
 	payload := make(map[string]interface{})
@@ -36,6 +23,20 @@ func getEnvironmentKeys(client Client, project string) ([]string, error) {
 	}
 
 	return keys, nil
+}
+
+func ensureWeCanDeleteEnvironment(client Client, project string) error {
+	onlyOne, err := isThereOnlyOneEnvironment(client, project)
+	if err != nil {
+		return err
+	}
+
+	if onlyOne {
+		println("Creating dummy environment since we cannot delete the last environment in a project")
+		return ensureThereIsADummyEnvironment(client, project)
+	} else {
+		return nil
+	}
 }
 
 func ensureThereIsADummyEnvironment(client Client, project string) error {
@@ -73,6 +74,21 @@ func isThereADummyEnvironment(client Client, project string) (bool, error) {
 	}
 
 	return statusCode == 200, nil
+}
+
+func isThereOnlyOneEnvironment(client Client, project string) (bool, error) {
+	payload := make(map[string]interface{})
+
+	err := client.Get("/projects/"+project, map[int]bool{200: true}, &payload)
+	if err != nil {
+		return false, err
+	}
+
+	environments := payload["environments"].([]interface{})
+
+	println("There are currently " + strconv.Itoa(len(environments)) + " environments in project " + project)
+
+	return len(environments) == 1, nil
 }
 
 func createDummyEnvironment(client Client, project string) error {

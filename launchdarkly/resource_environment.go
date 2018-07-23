@@ -2,7 +2,14 @@ package launchdarkly
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
+	"sync"
 )
+
+// Since we cannot delete the last environment in a project, we use a hack with a temporary dummy
+// environment that is created when we want to delete the last one. To avoid race conditions when
+// deleting multiple resources (terraform by default runs such operations concurrently), we need
+// to use a mutex.
+var environmentMutex = &sync.Mutex{}
 
 func resourceEnvironment() *schema.Resource {
 	return &schema.Resource{
@@ -34,6 +41,9 @@ func resourceEnvironment() *schema.Resource {
 
 func resourceEnvironmentCreate(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
+
+	environmentMutex.Lock()
+	defer environmentMutex.Unlock()
 
 	project := d.Get("project_key").(string)
 	name := d.Get("name").(string)
@@ -89,6 +99,9 @@ func resourceEnvironmentRead(d *schema.ResourceData, m interface{}) error {
 func resourceEnvironmentUpdate(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
 
+	environmentMutex.Lock()
+	defer environmentMutex.Unlock()
+
 	project := d.Get("project_key").(string)
 	name := d.Get("name").(string)
 	color := d.Get("color").(string)
@@ -114,20 +127,14 @@ func resourceEnvironmentUpdate(d *schema.ResourceData, m interface{}) error {
 func resourceEnvironmentDelete(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
 
+	environmentMutex.Lock()
+	defer environmentMutex.Unlock()
+
 	project := d.Get("project_key").(string)
 
-	onlyOne, err := isThereOnlyOneEnvironment(client, project)
+	err := ensureWeCanDeleteEnvironment(client, project)
 	if err != nil {
 		return err
-	}
-
-	if onlyOne {
-		println("Creating dummy environment since we cannot delete the last environment in a project")
-
-		err = ensureThereIsADummyEnvironment(client, project)
-		if err != nil {
-			return err
-		}
 	}
 
 	err = client.Delete("/projects/"+project+"/environments/"+d.Id(), map[int]bool{204: true, 404: true})
