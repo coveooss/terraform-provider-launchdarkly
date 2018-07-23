@@ -4,5 +4,19 @@ provider "launchdarkly" {
 
 resource "launchdarkly_project" "my-project" {
   key = "my-project-key"
-  name = "My Super Project!!"
+  name = "test"
+}
+
+resource "launchdarkly_environment" "dev" {
+  project_key = "${launchdarkly_project.my-project.key}"
+  name = "Development"
+  key = "dev"
+  color = "FF0000"
+}
+
+resource "launchdarkly_environment" "hipaa" {
+  project_key = "${launchdarkly_project.my-project.key}"
+  name = "HIPAA"
+  key = "hipaa"
+  color = "FF00FF"
 }

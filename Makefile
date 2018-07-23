@@ -8,7 +8,9 @@ clean:
 
 .PHONY: test
 test: build
-	go test ./...
+	terraform init
+	terraform apply
+	terraform destroy -parallelism=1
 
 terraform-provider-launchdarkly: $(SOURCES)
 	go build -o terraform-provider-launchdarkly

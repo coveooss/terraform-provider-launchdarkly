@@ -30,14 +30,32 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 	name := d.Get("name").(string)
 	key := d.Get("key").(string)
 
-	payload := map[string]string {
-		"name" : name,
-		"key": key,
+	payload := map[string]string{
+		"name": name,
+		"key":  key,
 	}
 
-	err := client.Post("/projects", payload, 201, nil)
+	err := client.Post("/projects", payload, map[int]bool{201: true}, nil)
 	if err != nil {
 		return err
+	}
+
+	// Default environments will be created, we want to get rid of those
+	environmentKeys, err := getEnvironmentKeys(client, key)
+	if err != nil {
+		return err
+	}
+
+	err = ensureThereIsADummyEnvironment(client, key)
+	if err != nil {
+		return err
+	}
+
+	for _, environmentKey := range environmentKeys {
+		err = client.Delete("/projects/"+key+"/environments/"+environmentKey, map[int]bool{204: true})
+		if err != nil {
+			return err
+		}
 	}
 
 	d.SetId(key)
@@ -54,7 +72,7 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 
 	payload := make(map[string]interface{})
 
-	err := client.Get("/projects/" + key, 200, &payload)
+	err := client.Get("/projects/"+key, map[int]bool{200: true}, &payload)
 	if err != nil {
 		d.SetId("")
 		return nil
@@ -71,13 +89,13 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 
 	name := d.Get("name").(string)
 
-	payload := []map[string]string { {
-		"op": "replace",
-		"path": "/name",
+	payload := []map[string]string{{
+		"op":    "replace",
+		"path":  "/name",
 		"value": name,
-	} }
+	}}
 
-	err := client.Patch("/projects/" + d.Id(), payload, 200, nil)
+	err := client.Patch("/projects/"+d.Id(), payload, map[int]bool{200: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -88,7 +106,7 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 func resourceProjectDelete(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
 
-	err := client.Delete("/projects/" + d.Id(), 204)
+	err := client.Delete("/projects/"+d.Id(), map[int]bool{204: true, 404: true})
 	if err != nil {
 		return err
 	}

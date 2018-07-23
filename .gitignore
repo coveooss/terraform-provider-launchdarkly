@@ -3,3 +3,4 @@ terraform.tfstate.backup
 vendor
 terraform-provider-launchdarkly
 .terraform
+crash.log

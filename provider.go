@@ -1,12 +1,12 @@
 package main
 
 import (
-"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func Provider() *schema.Provider {
 	return &schema.Provider{
-		Schema: map[string]*schema.Schema {
+		Schema: map[string]*schema.Schema{
 			"access_token": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -15,13 +15,13 @@ func Provider() *schema.Provider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"launchdarkly_project": resourceProject(),
+			"launchdarkly_project":      resourceProject(),
+			"launchdarkly_environment":  resourceEnvironment(),
 			"launchdarkly_feature_flag": resourceFeatureFlag(),
 		},
 
 		ConfigureFunc: providerConfigure,
 	}
-
 
 }
 
