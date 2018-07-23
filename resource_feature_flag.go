@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
-	"errors"
 )
 
 func resourceFeatureFlag() *schema.Resource {
@@ -32,21 +31,38 @@ func resourceFeatureFlag() *schema.Resource {
 			"temporary": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default: true,
+				Default:  true,
 			},
 			"include_in_snippet": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default: false,
+				Default:  false,
 			},
 			"tags": &schema.Schema{
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{Type: schema.TypeString},
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"custom_properties": &schema.Schema{
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"name": &schema.Schema{
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"value": &schema.Schema{
+							Type:     schema.TypeList,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -62,7 +78,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
 	tags := d.Get("tags").([]interface{})
-	customProperties := d.Get("custom_properties").(map[string]interface{})
+	customProperties := d.Get("custom_properties").([]interface{})
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
 	if err != nil {
@@ -70,12 +86,12 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	payload := map[string]interface{}{
-		"name":  name,
-		"key":   key,
-		"description": description,
-		"temporary": temporary,
+		"name":             name,
+		"key":              key,
+		"description":      description,
+		"temporary":        temporary,
 		"includeInSnippet": includeInSnippet,
-		"tags": transformTags(tags),
+		"tags":             transformTagsFromTerraformFormat(tags),
 		"customProperties": transformedCustomProperties,
 	}
 
@@ -133,7 +149,7 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
 	tags := d.Get("tags").([]interface{})
-	customProperties := d.Get("custom_properties").(map[string]interface{})
+	customProperties := d.Get("custom_properties").([]interface{})
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
 	if err != nil {
@@ -154,12 +170,12 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": temporary,
 	}, {
 		"op":    "replace",
-			"path":  "/includeInSnippet",
-			"value": includeInSnippet,
+		"path":  "/includeInSnippet",
+		"value": includeInSnippet,
 	}, {
 		"op":    "replace",
 		"path":  "/tags",
-		"value": transformTags(tags),
+		"value": transformTagsFromTerraformFormat(tags),
 	}, {
 		"op":    "replace",
 		"path":  "/customProperties",
@@ -187,7 +203,7 @@ func resourceFeatureFlagDelete(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func transformTags(tags []interface{}) []string {
+func transformTagsFromTerraformFormat(tags []interface{}) []string {
 	transformed := make([]string, len(tags))
 
 	for index, value := range tags {
@@ -197,19 +213,17 @@ func transformTags(tags []interface{}) []string {
 	return transformed
 }
 
-func transformCustomPropertiesFromTerraformFormat(properties map[string]interface{}) (interface{}, error) {
+func transformCustomPropertiesFromTerraformFormat(properties []interface{}) (interface{}, error) {
 	transformed := make(map[string]interface{})
 
-	for key, value := range properties {
-		sub := make(map[string]interface{})
-		sub["name"] = key
+	for _, value := range properties {
+		key := value.(map[string]interface{})["key"].(string)
+		name := value.(map[string]interface{})["name"].(string)
+		values := value.(map[string]interface{})["value"].([]interface{})
 
-		switch value.(type) {
-		case string:
-			sub["value"] = []string { value.(string) }
-		default:
-			return transformed, errors.New("Custom property " + key + " must have value of type string")
-		}
+		sub := make(map[string]interface{})
+		sub["name"] = name
+		sub["value"] = values
 
 		transformed[key] = sub
 	}
@@ -218,17 +232,18 @@ func transformCustomPropertiesFromTerraformFormat(properties map[string]interfac
 }
 
 func transformCustomPropertiesFromLaunchDarklyFormat(properties interface{}) interface{} {
-	transformed := make(map[string]interface{})
+	transformed := make([]map[string]interface{}, 0)
 
 	for key, body := range properties.(map[string]interface{}) {
+		name := body.(map[string]interface{})["name"].(string)
 		values := body.(map[string]interface{})["value"].([]interface{})
 
-		if len(values) != 1 {
-			println("Skipping custom property " + key + " because it has multiple values")
-			continue
-		}
+		sub := make(map[string]interface{})
+		sub["key"] = key
+		sub["name"] = name
+		sub["value"] = values
 
-		transformed[key] = values[0].(string)
+		transformed = append(transformed, sub)
 	}
 
 	return transformed

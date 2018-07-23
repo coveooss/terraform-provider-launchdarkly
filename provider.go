@@ -11,6 +11,7 @@ func Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The access token used to authenticate against LaunchDarkly's API",
+				Sensitive:   true,
 			},
 		},
 
