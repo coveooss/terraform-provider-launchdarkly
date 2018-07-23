@@ -1,4 +1,4 @@
-package main
+package launchdarkly
 
 import "strconv"
 
