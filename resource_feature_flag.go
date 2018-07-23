@@ -39,6 +39,11 @@ func resourceFeatureFlag() *schema.Resource {
 				Optional: true,
 				Default: false,
 			},
+			"tags": &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{Type: schema.TypeString},
+			},
 			"custom_properties": &schema.Schema{
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -56,6 +61,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	description := d.Get("description").(string)
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
+	tags := d.Get("tags").([]interface{})
 	customProperties := d.Get("custom_properties").(map[string]interface{})
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
@@ -69,6 +75,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		"description": description,
 		"temporary": temporary,
 		"includeInSnippet": includeInSnippet,
+		"tags": transformTags(tags),
 		"customProperties": transformedCustomProperties,
 	}
 
@@ -83,6 +90,8 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	d.Set("description", description)
 	d.Set("temporary", temporary)
 	d.Set("include_in_snippet", includeInSnippet)
+	d.Set("tags", tags)
+	d.Set("custom_properties", customProperties)
 
 	return nil
 }
@@ -101,6 +110,7 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
+	transformedTags := payload["tags"].([]interface{})
 	transformedCustomProperties := transformCustomPropertiesFromLaunchDarklyFormat(payload["customProperties"])
 
 	d.Set("name", payload["name"])
@@ -108,6 +118,7 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("description", payload["description"])
 	d.Set("temporary", payload["temporary"])
 	d.Set("include_in_snippet", payload["includeInSnippet"])
+	d.Set("tags", transformedTags)
 	d.Set("custom_properties", transformedCustomProperties)
 
 	return nil
@@ -121,6 +132,7 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 	description := d.Get("description").(string)
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
+	tags := d.Get("tags").([]interface{})
 	customProperties := d.Get("custom_properties").(map[string]interface{})
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
@@ -146,6 +158,10 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 			"value": includeInSnippet,
 	}, {
 		"op":    "replace",
+		"path":  "/tags",
+		"value": transformTags(tags),
+	}, {
+		"op":    "replace",
 		"path":  "/customProperties",
 		"value": transformedCustomProperties,
 	}}
@@ -169,6 +185,16 @@ func resourceFeatureFlagDelete(d *schema.ResourceData, m interface{}) error {
 	}
 
 	return nil
+}
+
+func transformTags(tags []interface{}) []string {
+	transformed := make([]string, len(tags))
+
+	for index, value := range tags {
+		transformed[index] = value.(string)
+	}
+
+	return transformed
 }
 
 func transformCustomPropertiesFromTerraformFormat(properties map[string]interface{}) (interface{}, error) {
