@@ -1,5 +1,7 @@
+variable "ld_access_token" {}
+
 provider "launchdarkly" {
-  access_token = "api-3963b908-ec5a-4d9e-adb3-6ee30a119724"
+  access_token = "${var.ld_access_token}"
 }
 
 resource "launchdarkly_project" "my-project" {
