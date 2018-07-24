@@ -215,10 +215,11 @@ func transformTagsFromTerraformFormat(tags []interface{}) []string {
 func transformCustomPropertiesFromTerraformFormat(properties []interface{}) (interface{}, error) {
 	transformed := make(map[string]interface{})
 
-	for _, value := range properties {
-		key := value.(map[string]interface{})["key"].(string)
-		name := value.(map[string]interface{})["name"].(string)
-		values := value.(map[string]interface{})["value"].([]interface{})
+	for _, raw := range properties {
+		value := raw.(map[string]interface{})
+		key := value["key"].(string)
+		name := value["name"].(string)
+		values := value["value"].([]interface{})
 
 		sub := make(map[string]interface{})
 		sub["name"] = name
