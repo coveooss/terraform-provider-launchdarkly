@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"launchdarklytfprovider/launchdarkly"
+	"github.com/coveo/launchdarkly-terraform-provider/launchdarkly"
 )
 
 func main() {
