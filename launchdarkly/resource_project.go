@@ -35,7 +35,7 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 		"key":  key,
 	}
 
-	err := client.Post(getProjectCreateUrl(), payload, map[int]bool{201: true}, nil)
+	_, err := client.Post(getProjectCreateUrl(), payload, map[int]bool{201: true})
 	if err != nil {
 		return err
 	}
@@ -70,14 +70,13 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(Client)
 
-	payload := make(map[string]interface{})
-
-	err := client.Get(getProjectUrl(key), map[int]bool{200: true}, &payload)
+	raw, err := client.Get(getProjectUrl(key), map[int]bool{200: true})
 	if err != nil {
 		d.SetId("")
 		return nil
 	}
 
+	payload := raw.(map[string]interface{})
 	d.Set("name", payload["name"])
 	d.Set("key", payload["key"])
 
@@ -95,7 +94,7 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": name,
 	}}
 
-	err := client.Patch(getProjectUrl(d.Id()), payload, map[int]bool{200: true}, nil)
+	_, err := client.Patch(getProjectUrl(d.Id()), payload, map[int]bool{200: true})
 	if err != nil {
 		return err
 	}

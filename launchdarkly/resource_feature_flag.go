@@ -95,7 +95,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		"customProperties": transformedCustomProperties,
 	}
 
-	err = client.Post(getFlagCreateUrl(project), payload, map[int]bool{201: true}, nil)
+	_, err = client.Post(getFlagCreateUrl(project), payload, map[int]bool{201: true})
 	if err != nil {
 		return err
 	}
@@ -118,14 +118,13 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(Client)
 
-	payload := make(map[string]interface{})
-
-	err := client.Get(getFlagUrl(project, key), map[int]bool{200: true}, &payload)
+	raw, err := client.Get(getFlagUrl(project, key), map[int]bool{200: true})
 	if err != nil {
 		d.SetId("")
 		return nil
 	}
 
+	payload := raw.(map[string]interface{})
 	transformedTags := payload["tags"].([]interface{})
 	transformedCustomProperties := transformCustomPropertiesFromLaunchDarklyFormat(payload["customProperties"])
 
@@ -182,7 +181,7 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": transformedCustomProperties,
 	}}
 
-	err = client.Patch(getFlagUrl(project, d.Id()), payload, map[int]bool{200: true}, nil)
+	_, err = client.Patch(getFlagUrl(project, d.Id()), payload, map[int]bool{200: true})
 	if err != nil {
 		return err
 	}

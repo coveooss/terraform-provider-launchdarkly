@@ -7,12 +7,13 @@ import (
 const dummyEnvironmentKey = "dummy-environment"
 
 func getEnvironmentKeys(client Client, project string) ([]string, error) {
-	payload := make(map[string]interface{})
 
-	err := client.Get(getProjectUrl(project), map[int]bool{200: true}, &payload)
+	raw, err := client.Get(getProjectUrl(project), map[int]bool{200: true})
 	if err != nil {
 		return nil, err
 	}
+
+	payload := raw.(map[string]interface{})
 
 	environments := payload["environments"].([]interface{})
 
@@ -77,13 +78,12 @@ func isThereADummyEnvironment(client Client, project string) (bool, error) {
 }
 
 func isThereOnlyOneEnvironment(client Client, project string) (bool, error) {
-	payload := make(map[string]interface{})
-
-	err := client.Get(getProjectUrl(project), map[int]bool{200: true}, &payload)
+	raw, err := client.Get(getProjectUrl(project), map[int]bool{200: true})
 	if err != nil {
 		return false, err
 	}
 
+	payload := raw.(map[string]interface{})
 	environments := payload["environments"].([]interface{})
 
 	println("There are currently " + strconv.Itoa(len(environments)) + " environments in project " + project)
@@ -100,7 +100,7 @@ func createDummyEnvironment(client Client, project string) error {
 		"color": "FFFFFF",
 	}
 
-	err := client.Post(getEnvironmentCreateUrl(project), payload, map[int]bool{201: true}, nil)
+	_, err := client.Post(getEnvironmentCreateUrl(project), payload, map[int]bool{201: true})
 	if err != nil {
 		return err
 	}
