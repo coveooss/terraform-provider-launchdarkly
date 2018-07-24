@@ -1,6 +1,7 @@
 VERSION = 1.0.0
 SOURCES = $(wildcard *.go)
 
+.PHONY: default
 default: build cross-compile
 
 .PHONY: build
