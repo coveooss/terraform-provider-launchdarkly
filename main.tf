@@ -13,7 +13,7 @@ resource "launchdarkly_environment" "dev" {
   project_key = "${launchdarkly_project.my-project.key}"
   name = "Development"
   key = "dev"
-  color = "FF0000"
+  color = "FF00FF"
 }
 
 resource "launchdarkly_environment" "hipaa" {

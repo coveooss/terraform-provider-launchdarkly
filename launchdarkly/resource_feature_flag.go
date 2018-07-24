@@ -15,6 +15,7 @@ func resourceFeatureFlag() *schema.Resource {
 			"project_key": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validateKey,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -23,6 +24,7 @@ func resourceFeatureFlag() *schema.Resource {
 			"key": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validateKey,
 			},
 			"description": {
 				Type:     schema.TypeString,

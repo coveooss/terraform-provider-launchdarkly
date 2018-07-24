@@ -19,6 +19,7 @@ func resourceProject() *schema.Resource {
 			"key": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validateKey,
 			},
 		},
 	}
