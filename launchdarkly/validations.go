@@ -24,3 +24,18 @@ func validateKey(v interface{}, k string) ([]string, []error) {
 
 	return nil, nil
 }
+
+func validateColor(v interface{}, k string) ([]string, []error) {
+	value := v.(string)
+
+	matched, err := regexp.MatchString("^[0-9a-fA-F]{6}$", value)
+	if err != nil {
+		return nil, []error{err}
+	}
+
+	if !matched {
+		return nil, []error{errors.New(fmt.Sprintf("%s is not a valid RGB color code: %s", k, value))}
+	}
+
+	return nil, nil
+}

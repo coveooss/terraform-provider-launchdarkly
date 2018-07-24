@@ -36,6 +36,7 @@ func resourceEnvironment() *schema.Resource {
 			"color": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validateColor,
 			},
 		},
 	}
