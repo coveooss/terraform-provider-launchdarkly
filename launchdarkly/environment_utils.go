@@ -17,10 +17,9 @@ func getEnvironmentKeys(client Client, project string) ([]string, error) {
 
 	environments := payload["environments"].([]interface{})
 
-	keys := make([]string, len(environments))
-
-	for i, env := range environments {
-		keys[i] = env.(map[string]interface{})["key"].(string)
+	var keys []string
+	for _, env := range environments {
+		keys = append(keys, env.(map[string]interface{})["key"].(string))
 	}
 
 	return keys, nil

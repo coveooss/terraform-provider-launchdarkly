@@ -14,7 +14,7 @@ type Client struct {
 }
 
 func (c *Client) GetStatus(url string) (int, error) {
-	status, _, err := c.execute("GET", url, nil, make([]int, 0))
+	status, _, err := c.execute("GET", url, nil, []int{})
 	return status, err
 }
 
