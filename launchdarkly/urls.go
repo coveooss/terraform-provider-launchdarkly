@@ -12,7 +12,6 @@ func getProjectUrl(project string) string {
 	return fmt.Sprintf("%s/projects/%s", rootUrl, project)
 }
 
-
 func getFlagCreateUrl(project string) string {
 	return fmt.Sprintf("%s/flags/%s", rootUrl, project)
 }

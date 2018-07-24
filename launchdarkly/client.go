@@ -1,11 +1,11 @@
 package launchdarkly
 
 import (
-	"net/http"
-	"encoding/json"
 	"bytes"
-	"io/ioutil"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 )
 
