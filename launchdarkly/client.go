@@ -14,32 +14,31 @@ type Client struct {
 }
 
 func (c *Client) GetStatus(url string) (int, error) {
-	expectedStatus := make(map[int]bool)
-	status, _, err := c.execute("GET", url, nil, expectedStatus)
+	status, _, err := c.execute("GET", url, nil, make([]int, 0))
 	return status, err
 }
 
-func (c *Client) Get(url string, expectedStatus map[int]bool) (interface{}, error) {
+func (c *Client) Get(url string, expectedStatus []int) (interface{}, error) {
 	_, response, err := c.execute("GET", url, nil, expectedStatus)
 	return response, err
 }
 
-func (c *Client) Post(url string, body interface{}, expectedStatus map[int]bool) (interface{}, error) {
+func (c *Client) Post(url string, body interface{}, expectedStatus []int) (interface{}, error) {
 	_, response, err := c.execute("POST", url, body, expectedStatus)
 	return response, err
 }
 
-func (c *Client) Patch(url string, body interface{}, expectedStatus map[int]bool) (interface{}, error) {
+func (c *Client) Patch(url string, body interface{}, expectedStatus []int) (interface{}, error) {
 	_, response, err := c.execute("PATCH", url, body, expectedStatus)
 	return response, err
 }
 
-func (c *Client) Delete(url string, expectedStatus map[int]bool) error {
+func (c *Client) Delete(url string, expectedStatus []int) error {
 	_, _, err := c.execute("DELETE", url, nil, expectedStatus)
 	return err
 }
 
-func (c *Client) execute(method string, url string, body interface{}, expectedStatus map[int]bool) (int, interface{}, error) {
+func (c *Client) execute(method string, url string, body interface{}, expectedStatus []int) (int, interface{}, error) {
 	requestBody, err := json.Marshal(body)
 	if err != nil {
 		return 0, nil, err
@@ -65,8 +64,19 @@ func (c *Client) execute(method string, url string, body interface{}, expectedSt
 
 	println(method + " " + url + " returned HTTP status " + strconv.Itoa(resp.StatusCode))
 
-	if len(expectedStatus) > 0 && !expectedStatus[resp.StatusCode] {
-		return resp.StatusCode, nil, errors.New(method + " " + url + " did not return one of the expected HTTP status codes. Got HTTP " + strconv.Itoa(resp.StatusCode) + "\n" + string(responseBody))
+	if len(expectedStatus) > 0 {
+		found := false
+
+		for _, status := range expectedStatus {
+			if status == resp.StatusCode {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return resp.StatusCode, nil, errors.New(method + " " + url + " did not return one of the expected HTTP status codes. Got HTTP " + strconv.Itoa(resp.StatusCode) + "\n" + string(responseBody))
+		}
 	}
 
 	var response interface{}

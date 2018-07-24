@@ -56,7 +56,7 @@ func resourceEnvironmentCreate(d *schema.ResourceData, m interface{}) error {
 		"color": color,
 	}
 
-	_, err := client.Post(getEnvironmentCreateUrl(project), payload, map[int]bool{201: true})
+	_, err := client.Post(getEnvironmentCreateUrl(project), payload, []int{201})
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func resourceEnvironmentRead(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(Client)
 
-	raw, err := client.Get(getEnvironmentUrl(project, key), map[int]bool{200: true})
+	raw, err := client.Get(getEnvironmentUrl(project, key), []int{200})
 	if err != nil {
 		d.SetId("")
 		return nil
@@ -115,7 +115,7 @@ func resourceEnvironmentUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": color,
 	}}
 
-	_, err := client.Patch(getEnvironmentUrl(project, d.Id()), payload, map[int]bool{200: true})
+	_, err := client.Patch(getEnvironmentUrl(project, d.Id()), payload, []int{200})
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func resourceEnvironmentDelete(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	err = client.Delete(getEnvironmentUrl(project, d.Id()), map[int]bool{204: true, 404: true})
+	err = client.Delete(getEnvironmentUrl(project, d.Id()), []int{204, 404})
 	if err != nil {
 		return err
 	}

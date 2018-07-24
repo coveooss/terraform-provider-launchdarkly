@@ -8,7 +8,7 @@ const dummyEnvironmentKey = "dummy-environment"
 
 func getEnvironmentKeys(client Client, project string) ([]string, error) {
 
-	raw, err := client.Get(getProjectUrl(project), map[int]bool{200: true})
+	raw, err := client.Get(getProjectUrl(project), []int{200})
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func isThereADummyEnvironment(client Client, project string) (bool, error) {
 }
 
 func isThereOnlyOneEnvironment(client Client, project string) (bool, error) {
-	raw, err := client.Get(getProjectUrl(project), map[int]bool{200: true})
+	raw, err := client.Get(getProjectUrl(project), []int{200})
 	if err != nil {
 		return false, err
 	}
@@ -100,7 +100,7 @@ func createDummyEnvironment(client Client, project string) error {
 		"color": "FFFFFF",
 	}
 
-	_, err := client.Post(getEnvironmentCreateUrl(project), payload, map[int]bool{201: true})
+	_, err := client.Post(getEnvironmentCreateUrl(project), payload, []int{201})
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func createDummyEnvironment(client Client, project string) error {
 func deleteDummyEnvironment(client Client, project string) error {
 	println("Deleting the dummy environment")
 
-	err := client.Delete(getEnvironmentUrl(project, dummyEnvironmentKey), map[int]bool{204: true, 404: true})
+	err := client.Delete(getEnvironmentUrl(project, dummyEnvironmentKey), []int{204, 404})
 	if err != nil {
 		return err
 	}

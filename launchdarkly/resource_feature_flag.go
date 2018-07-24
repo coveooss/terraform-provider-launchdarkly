@@ -95,7 +95,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		"customProperties": transformedCustomProperties,
 	}
 
-	_, err = client.Post(getFlagCreateUrl(project), payload, map[int]bool{201: true})
+	_, err = client.Post(getFlagCreateUrl(project), payload, []int{201})
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(Client)
 
-	raw, err := client.Get(getFlagUrl(project, key), map[int]bool{200: true})
+	raw, err := client.Get(getFlagUrl(project, key), []int{200})
 	if err != nil {
 		d.SetId("")
 		return nil
@@ -181,7 +181,7 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": transformedCustomProperties,
 	}}
 
-	_, err = client.Patch(getFlagUrl(project, d.Id()), payload, map[int]bool{200: true})
+	_, err = client.Patch(getFlagUrl(project, d.Id()), payload, []int{200})
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func resourceFeatureFlagDelete(d *schema.ResourceData, m interface{}) error {
 
 	project := d.Get("project_key").(string)
 
-	err := client.Delete(getFlagUrl(project, d.Id()), map[int]bool{204: true, 404: true})
+	err := client.Delete(getFlagUrl(project, d.Id()), []int{204, 404})
 	if err != nil {
 		return err
 	}

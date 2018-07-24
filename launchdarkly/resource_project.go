@@ -35,7 +35,7 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 		"key":  key,
 	}
 
-	_, err := client.Post(getProjectCreateUrl(), payload, map[int]bool{201: true})
+	_, err := client.Post(getProjectCreateUrl(), payload, []int{201})
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	for _, environmentKey := range environmentKeys {
-		err = client.Delete(getEnvironmentUrl(key, environmentKey), map[int]bool{204: true})
+		err = client.Delete(getEnvironmentUrl(key, environmentKey), []int{204})
 		if err != nil {
 			return err
 		}
@@ -70,7 +70,7 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(Client)
 
-	raw, err := client.Get(getProjectUrl(key), map[int]bool{200: true})
+	raw, err := client.Get(getProjectUrl(key), []int{200})
 	if err != nil {
 		d.SetId("")
 		return nil
@@ -94,7 +94,7 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": name,
 	}}
 
-	_, err := client.Patch(getProjectUrl(d.Id()), payload, map[int]bool{200: true})
+	_, err := client.Patch(getProjectUrl(d.Id()), payload, []int{200})
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 func resourceProjectDelete(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
 
-	err := client.Delete(getProjectUrl(d.Id()), map[int]bool{204: true, 404: true})
+	err := client.Delete(getProjectUrl(d.Id()), []int{204, 404})
 	if err != nil {
 		return err
 	}
