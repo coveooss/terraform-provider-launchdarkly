@@ -1,9 +1,9 @@
 package launchdarkly
 
 import (
-	"regexp"
 	"errors"
 	"fmt"
+	"regexp"
 )
 
 func validateKey(v interface{}, k string) ([]string, []error) {

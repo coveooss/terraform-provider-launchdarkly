@@ -7,19 +7,15 @@ import (
 const dummyEnvironmentKey = "dummy-environment"
 
 func getEnvironmentKeys(client Client, project string) ([]string, error) {
-
-	raw, err := client.Get(getProjectUrl(project), []int{200})
+	var response JsonProject
+	err := client.GetInto(getProjectUrl(project), []int{200}, &response)
 	if err != nil {
 		return nil, err
 	}
 
-	payload := raw.(map[string]interface{})
-
-	environments := payload["environments"].([]interface{})
-
 	var keys []string
-	for _, env := range environments {
-		keys = append(keys, env.(map[string]interface{})["key"].(string))
+	for _, env := range response.Environments {
+		keys = append(keys, env.Key)
 	}
 
 	return keys, nil
@@ -77,26 +73,24 @@ func isThereADummyEnvironment(client Client, project string) (bool, error) {
 }
 
 func isThereOnlyOneEnvironment(client Client, project string) (bool, error) {
-	raw, err := client.Get(getProjectUrl(project), []int{200})
+	var response JsonProject
+	err := client.GetInto(getProjectUrl(project), []int{200}, &response)
 	if err != nil {
 		return false, err
 	}
 
-	payload := raw.(map[string]interface{})
-	environments := payload["environments"].([]interface{})
+	println("There are currently " + strconv.Itoa(len(response.Environments)) + " environments in project " + project)
 
-	println("There are currently " + strconv.Itoa(len(environments)) + " environments in project " + project)
-
-	return len(environments) == 1, nil
+	return len(response.Environments) == 1, nil
 }
 
 func createDummyEnvironment(client Client, project string) error {
 	println("Creating dummy environment")
 
-	payload := map[string]string{
-		"name":  dummyEnvironmentKey,
-		"key":   dummyEnvironmentKey,
-		"color": "FFFFFF",
+	payload := JsonEnvironment{
+		Name:  dummyEnvironmentKey,
+		Key:   dummyEnvironmentKey,
+		Color: "FFFFFF",
 	}
 
 	_, err := client.Post(getEnvironmentCreateUrl(project), payload, []int{201})

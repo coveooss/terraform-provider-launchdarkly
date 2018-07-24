@@ -13,8 +13,8 @@ func resourceFeatureFlag() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"project_key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validateKey,
 			},
 			"name": {
@@ -22,8 +22,8 @@ func resourceFeatureFlag() *schema.Resource {
 				Required: true,
 			},
 			"key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validateKey,
 			},
 			"description": {
@@ -87,14 +87,14 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	payload := map[string]interface{}{
-		"name":             name,
-		"key":              key,
-		"description":      description,
-		"temporary":        temporary,
-		"includeInSnippet": includeInSnippet,
-		"tags":             transformTagsFromTerraformFormat(tags),
-		"customProperties": transformedCustomProperties,
+	payload := JsonFeatureFlag{
+		Name:             name,
+		Key:              key,
+		Description:      description,
+		Temporary:        temporary,
+		IncludeInSnippet: includeInSnippet,
+		Tags:             transformTagsFromTerraformFormat(tags),
+		CustomProperties: transformedCustomProperties,
 	}
 
 	_, err = client.Post(getFlagCreateUrl(project), payload, []int{201})
@@ -120,22 +120,21 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(Client)
 
-	raw, err := client.Get(getFlagUrl(project, key), []int{200})
+	var response JsonFeatureFlag
+	err := client.GetInto(getFlagUrl(project, key), []int{200}, &response)
 	if err != nil {
 		d.SetId("")
 		return nil
 	}
 
-	payload := raw.(map[string]interface{})
-	transformedTags := payload["tags"].([]interface{})
-	transformedCustomProperties := transformCustomPropertiesFromLaunchDarklyFormat(payload["customProperties"])
+	transformedCustomProperties := transformCustomPropertiesFromLaunchDarklyFormat(response.CustomProperties)
 
-	d.Set("name", payload["name"])
-	d.Set("key", payload["key"])
-	d.Set("description", payload["description"])
-	d.Set("temporary", payload["temporary"])
-	d.Set("include_in_snippet", payload["includeInSnippet"])
-	d.Set("tags", transformedTags)
+	d.Set("name", response.Name)
+	d.Set("key", response.Key)
+	d.Set("description", response.Description)
+	d.Set("temporary", response.Temporary)
+	d.Set("include_in_snippet", response.IncludeInSnippet)
+	d.Set("tags", response.Tags)
 	d.Set("custom_properties", transformedCustomProperties)
 
 	return nil
@@ -214,36 +213,36 @@ func transformTagsFromTerraformFormat(tags []interface{}) []string {
 	return transformed
 }
 
-func transformCustomPropertiesFromTerraformFormat(properties []interface{}) (interface{}, error) {
-	transformed := make(map[string]interface{})
+func transformCustomPropertiesFromTerraformFormat(properties []interface{}) (map[string]JsonCustomProperty, error) {
+	transformed := make(map[string]JsonCustomProperty)
 
 	for _, raw := range properties {
 		value := raw.(map[string]interface{})
 		key := value["key"].(string)
 		name := value["name"].(string)
-		values := value["value"].([]interface{})
 
-		sub := make(map[string]interface{})
-		sub["name"] = name
-		sub["value"] = values
+		values := []string{}
+		for _, v := range value["value"].([]interface{}) {
+			values = append(values, v.(string))
+		}
 
-		transformed[key] = sub
+		transformed[key] = JsonCustomProperty{
+			Name:  name,
+			Value: values,
+		}
 	}
 
 	return transformed, nil
 }
 
-func transformCustomPropertiesFromLaunchDarklyFormat(properties interface{}) interface{} {
+func transformCustomPropertiesFromLaunchDarklyFormat(properties map[string]JsonCustomProperty) interface{} {
 	transformed := make([]map[string]interface{}, 0)
 
-	for key, body := range properties.(map[string]interface{}) {
-		name := body.(map[string]interface{})["name"].(string)
-		values := body.(map[string]interface{})["value"].([]interface{})
-
+	for key, body := range properties {
 		sub := make(map[string]interface{})
 		sub["key"] = key
-		sub["name"] = name
-		sub["value"] = values
+		sub["name"] = body.Name
+		sub["value"] = body.Value
 
 		transformed = append(transformed, sub)
 	}

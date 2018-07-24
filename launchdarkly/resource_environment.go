@@ -20,8 +20,8 @@ func resourceEnvironment() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"project_key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validateKey,
 			},
 			"name": {
@@ -29,13 +29,13 @@ func resourceEnvironment() *schema.Resource {
 				Required: true,
 			},
 			"key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validateKey,
 			},
 			"color": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validateColor,
 			},
 		},
@@ -53,10 +53,10 @@ func resourceEnvironmentCreate(d *schema.ResourceData, m interface{}) error {
 	key := d.Get("key").(string)
 	color := d.Get("color").(string)
 
-	payload := map[string]string{
-		"name":  name,
-		"key":   key,
-		"color": color,
+	payload := JsonEnvironment{
+		Name:  name,
+		Key:   key,
+		Color: color,
 	}
 
 	_, err := client.Post(getEnvironmentCreateUrl(project), payload, []int{201})
@@ -84,16 +84,16 @@ func resourceEnvironmentRead(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(Client)
 
-	raw, err := client.Get(getEnvironmentUrl(project, key), []int{200})
+	var response JsonEnvironment
+	err := client.GetInto(getEnvironmentUrl(project, key), []int{200}, &response)
 	if err != nil {
 		d.SetId("")
 		return nil
 	}
 
-	payload := raw.(map[string]interface{})
-	d.Set("name", payload["name"])
-	d.Set("key", payload["key"])
-	d.Set("color", payload["color"])
+	d.Set("name", response.Name)
+	d.Set("key", response.Key)
+	d.Set("color", response.Color)
 
 	return nil
 }

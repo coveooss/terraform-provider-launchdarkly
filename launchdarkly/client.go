@@ -20,15 +20,27 @@ func (c *Client) GetStatus(url string) (int, error) {
 
 func (c *Client) Get(url string, expectedStatus []int) (interface{}, error) {
 	_, response, err := c.execute("GET", url, nil, expectedStatus)
-	return response, err
+
+	var parsedResponse interface{}
+	json.Unmarshal(response, &parsedResponse)
+
+	return parsedResponse, err
 }
 
-func (c *Client) Post(url string, body interface{}, expectedStatus []int) (interface{}, error) {
+func (c *Client) GetInto(url string, expectedStatus []int, target interface{}) error {
+	_, response, err := c.execute("GET", url, nil, expectedStatus)
+
+	json.Unmarshal(response, target)
+
+	return err
+}
+
+func (c *Client) Post(url string, body interface{}, expectedStatus []int) ([]byte, error) {
 	_, response, err := c.execute("POST", url, body, expectedStatus)
 	return response, err
 }
 
-func (c *Client) Patch(url string, body interface{}, expectedStatus []int) (interface{}, error) {
+func (c *Client) Patch(url string, body interface{}, expectedStatus []int) ([]byte, error) {
 	_, response, err := c.execute("PATCH", url, body, expectedStatus)
 	return response, err
 }
@@ -38,7 +50,7 @@ func (c *Client) Delete(url string, expectedStatus []int) error {
 	return err
 }
 
-func (c *Client) execute(method string, url string, body interface{}, expectedStatus []int) (int, interface{}, error) {
+func (c *Client) execute(method string, url string, body interface{}, expectedStatus []int) (int, []byte, error) {
 	requestBody, err := json.Marshal(body)
 	if err != nil {
 		return 0, nil, err
@@ -67,7 +79,6 @@ func (c *Client) execute(method string, url string, body interface{}, expectedSt
 
 	if len(expectedStatus) > 0 {
 		found := false
-
 		for _, status := range expectedStatus {
 			if status == resp.StatusCode {
 				found = true
@@ -80,13 +91,5 @@ func (c *Client) execute(method string, url string, body interface{}, expectedSt
 		}
 	}
 
-	var response interface{}
-	if len(responseBody) > 0 {
-		err = json.Unmarshal(responseBody, &response)
-		if err != nil {
-			return resp.StatusCode, nil, err
-		}
-	}
-
-	return resp.StatusCode, response, nil
+	return resp.StatusCode, responseBody, nil
 }

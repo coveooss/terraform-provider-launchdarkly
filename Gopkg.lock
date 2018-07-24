@@ -365,6 +365,7 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "context/ctxhttp",
     "html",
     "html/atom",
     "http/httpguts",
@@ -402,6 +403,17 @@
   ]
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
+
+[[projects]]
+  branch = "master"
+  name = "google.golang.org/api"
+  packages = [
+    "gensupport",
+    "googleapi",
+    "googleapi/internal/uritemplates",
+    "jobs/v2"
+  ]
+  revision = "2c45710c7f3fb0ab63506810a1ba84325ab90ab8"
 
 [[projects]]
   branch = "master"
@@ -446,6 +458,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "37b1dfa1faa7fb7f1638e4dad103736d2c423558dc0ffd6467c8c60e4d3353be"
+  inputs-digest = "9a6ad45556c86ae34cad5fb6bb76e68041646649775b4e48df52330122f5467b"
   solver-name = "gps-cdcl"
   solver-version = 1

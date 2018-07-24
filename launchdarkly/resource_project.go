@@ -17,8 +17,8 @@ func resourceProject() *schema.Resource {
 				Required: true,
 			},
 			"key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validateKey,
 			},
 		},
@@ -31,9 +31,9 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 	name := d.Get("name").(string)
 	key := d.Get("key").(string)
 
-	payload := map[string]string{
-		"name": name,
-		"key":  key,
+	payload := JsonProject{
+		Name: name,
+		Key:  key,
 	}
 
 	_, err := client.Post(getProjectCreateUrl(), payload, []int{201})
@@ -71,15 +71,15 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 
 	client := m.(Client)
 
-	raw, err := client.Get(getProjectUrl(key), []int{200})
+	var response JsonProject
+	err := client.GetInto(getProjectUrl(key), []int{200}, &response)
 	if err != nil {
 		d.SetId("")
 		return nil
 	}
 
-	payload := raw.(map[string]interface{})
-	d.Set("name", payload["name"])
-	d.Set("key", payload["key"])
+	d.Set("name", response.Name)
+	d.Set("key", response.Key)
 
 	return nil
 }
