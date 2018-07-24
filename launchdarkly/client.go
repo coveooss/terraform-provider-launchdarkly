@@ -57,6 +57,7 @@ func (c *Client) execute(method string, url string, body interface{}, expectedSt
 		return 0, nil, err
 	}
 
+	defer resp.Body.Close()
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return resp.StatusCode, nil, err
