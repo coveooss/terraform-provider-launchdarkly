@@ -13,38 +13,38 @@ type Client struct {
 	AccessToken string
 }
 
-func (c *Client) GetStatus(path string) (int, error) {
+func (c *Client) GetStatus(url string) (int, error) {
 	expectedStatus := make(map[int]bool)
-	return c.execute("GET", path, nil, expectedStatus, nil)
+	return c.execute("GET", url, nil, expectedStatus, nil)
 }
 
-func (c *Client) Get(path string, expectedStatus map[int]bool, response interface{}) error {
-	_, err := c.execute("GET", path, nil, expectedStatus, response)
+func (c *Client) Get(url string, expectedStatus map[int]bool, response interface{}) error {
+	_, err := c.execute("GET", url, nil, expectedStatus, response)
 	return err
 }
 
-func (c *Client) Post(path string, body interface{}, expectedStatus map[int]bool, response interface{}) error {
-	_, err := c.execute("POST", path, body, expectedStatus, response)
+func (c *Client) Post(url string, body interface{}, expectedStatus map[int]bool, response interface{}) error {
+	_, err := c.execute("POST", url, body, expectedStatus, response)
 	return err
 }
 
-func (c *Client) Patch(path string, body interface{}, expectedStatus map[int]bool, response interface{}) error {
-	_, err := c.execute("PATCH", path, body, expectedStatus, response)
+func (c *Client) Patch(url string, body interface{}, expectedStatus map[int]bool, response interface{}) error {
+	_, err := c.execute("PATCH", url, body, expectedStatus, response)
 	return err
 }
 
-func (c *Client) Delete(path string, expectedStatus map[int]bool) error {
-	_, err := c.execute("DELETE", path, nil, expectedStatus, nil)
+func (c *Client) Delete(url string, expectedStatus map[int]bool) error {
+	_, err := c.execute("DELETE", url, nil, expectedStatus, nil)
 	return err
 }
 
-func (c *Client) execute(method string, path string, body interface{}, expectedStatus map[int]bool, response interface{}) (int, error) {
+func (c *Client) execute(method string, url string, body interface{}, expectedStatus map[int]bool, response interface{}) (int, error) {
 	requestBody, err := json.Marshal(body)
 	if err != nil {
 		return 0, err
 	}
 
-	req, err := http.NewRequest(method, "https://app.launchdarkly.com/api/v2"+path, bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return 0, err
 	}
@@ -62,10 +62,10 @@ func (c *Client) execute(method string, path string, body interface{}, expectedS
 		return resp.StatusCode, err
 	}
 
-	println(method + " " + path + " returned HTTP status " + strconv.Itoa(resp.StatusCode))
+	println(method + " " + url + " returned HTTP status " + strconv.Itoa(resp.StatusCode))
 
 	if len(expectedStatus) > 0 && !expectedStatus[resp.StatusCode] {
-		return resp.StatusCode, errors.New(method + " " + path + " did not return one of the expected HTTP status codes. Got HTTP " + strconv.Itoa(resp.StatusCode) + "\n" + string(responseBody))
+		return resp.StatusCode, errors.New(method + " " + url + " did not return one of the expected HTTP status codes. Got HTTP " + strconv.Itoa(resp.StatusCode) + "\n" + string(responseBody))
 	}
 
 	if response != nil {

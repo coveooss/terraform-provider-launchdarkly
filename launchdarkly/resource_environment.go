@@ -19,19 +19,19 @@ func resourceEnvironment() *schema.Resource {
 		Delete: resourceEnvironmentDelete,
 
 		Schema: map[string]*schema.Schema{
-			"project_key": &schema.Schema{
+			"project_key": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"key": &schema.Schema{
+			"key": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"color": &schema.Schema{
+			"color": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -56,7 +56,7 @@ func resourceEnvironmentCreate(d *schema.ResourceData, m interface{}) error {
 		"color": color,
 	}
 
-	err := client.Post("/projects/"+project+"/environments", payload, map[int]bool{201: true}, nil)
+	err := client.Post(getEnvironmentCreateUrl(project), payload, map[int]bool{201: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func resourceEnvironmentRead(d *schema.ResourceData, m interface{}) error {
 
 	payload := make(map[string]interface{})
 
-	err := client.Get("/projects/"+project+"/environments/"+key, map[int]bool{200: true}, &payload)
+	err := client.Get(getEnvironmentUrl(project, key), map[int]bool{200: true}, &payload)
 	if err != nil {
 		d.SetId("")
 		return nil
@@ -116,7 +116,7 @@ func resourceEnvironmentUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": color,
 	}}
 
-	err := client.Patch("/projects/"+project+"/environments/"+d.Id(), payload, map[int]bool{200: true}, nil)
+	err := client.Patch(getEnvironmentUrl(project, d.Id()), payload, map[int]bool{200: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func resourceEnvironmentDelete(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	err = client.Delete("/projects/"+project+"/environments/"+d.Id(), map[int]bool{204: true, 404: true})
+	err = client.Delete(getEnvironmentUrl(project, d.Id()), map[int]bool{204: true, 404: true})
 	if err != nil {
 		return err
 	}

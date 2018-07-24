@@ -12,11 +12,11 @@ func resourceProject() *schema.Resource {
 		Delete: resourceProjectDelete,
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"key": &schema.Schema{
+			"key": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -35,7 +35,7 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 		"key":  key,
 	}
 
-	err := client.Post("/projects", payload, map[int]bool{201: true}, nil)
+	err := client.Post(getProjectCreateUrl(), payload, map[int]bool{201: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	for _, environmentKey := range environmentKeys {
-		err = client.Delete("/projects/"+key+"/environments/"+environmentKey, map[int]bool{204: true})
+		err = client.Delete(getEnvironmentUrl(key, environmentKey), map[int]bool{204: true})
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 
 	payload := make(map[string]interface{})
 
-	err := client.Get("/projects/"+key, map[int]bool{200: true}, &payload)
+	err := client.Get(getProjectUrl(key), map[int]bool{200: true}, &payload)
 	if err != nil {
 		d.SetId("")
 		return nil
@@ -95,7 +95,7 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": name,
 	}}
 
-	err := client.Patch("/projects/"+d.Id(), payload, map[int]bool{200: true}, nil)
+	err := client.Patch(getProjectUrl(d.Id()), payload, map[int]bool{200: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 func resourceProjectDelete(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
 
-	err := client.Delete("/projects/"+d.Id(), map[int]bool{204: true, 404: true})
+	err := client.Delete(getProjectUrl(d.Id()), map[int]bool{204: true, 404: true})
 	if err != nil {
 		return err
 	}

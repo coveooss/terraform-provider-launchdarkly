@@ -12,38 +12,38 @@ func resourceFeatureFlag() *schema.Resource {
 		Delete: resourceFeatureFlagDelete,
 
 		Schema: map[string]*schema.Schema{
-			"project_key": &schema.Schema{
+			"project_key": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"key": &schema.Schema{
+			"key": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"description": &schema.Schema{
+			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"temporary": &schema.Schema{
+			"temporary": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
-			"include_in_snippet": &schema.Schema{
+			"include_in_snippet": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"tags": &schema.Schema{
+			"tags": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"custom_properties": &schema.Schema{
+			"custom_properties": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -52,11 +52,11 @@ func resourceFeatureFlag() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"name": &schema.Schema{
+						"name": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"value": &schema.Schema{
+						"value": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -95,7 +95,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		"customProperties": transformedCustomProperties,
 	}
 
-	err = client.Post("/flags/"+project, payload, map[int]bool{201: true}, nil)
+	err = client.Post(getFlagCreateUrl(project), payload, map[int]bool{201: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 
 	payload := make(map[string]interface{})
 
-	err := client.Get("/flags/"+project+"/"+key, map[int]bool{200: true}, &payload)
+	err := client.Get(getFlagUrl(project, key), map[int]bool{200: true}, &payload)
 	if err != nil {
 		d.SetId("")
 		return nil
@@ -182,7 +182,7 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": transformedCustomProperties,
 	}}
 
-	err = client.Patch("/flags/"+project+"/"+d.Id(), payload, map[int]bool{200: true}, nil)
+	err = client.Patch(getFlagUrl(project, d.Id()), payload, map[int]bool{200: true}, nil)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func resourceFeatureFlagDelete(d *schema.ResourceData, m interface{}) error {
 
 	project := d.Get("project_key").(string)
 
-	err := client.Delete("/flags/"+project+"/"+d.Id(), map[int]bool{204: true, 404: true})
+	err := client.Delete(getFlagUrl(project, d.Id()), map[int]bool{204: true, 404: true})
 	if err != nil {
 		return err
 	}
