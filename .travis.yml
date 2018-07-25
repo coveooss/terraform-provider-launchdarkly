@@ -13,6 +13,6 @@ deploy:
     tags: true
   api_key:
     secure: 5wAUUkjPJWTha5B/MgoSVJ9ki/V93EsXND72h2Vo5OM9BtkBQFr1xoTbRkBcCQ9WPLWpcMKAieei2ur0OFLdsSq1ld9KQ2/+VWCZGghDSiqPt/yCICJAK8NWa6vhdhUJEkRYBEmcPm2c2EzCiR5Yz6+3i6sGIfOUFqnynGAlFdiBwt1WesCy53fFv4wxEnKWZqXYKtwt8a0AY3SJiyFT3GR0nklMZsuCIrOUR4zemao+uAXRMfj4koePa1pX0nnfpJYEWYTaSB/mlz1fEITBNzQmqLGlNf9SoiLKzC/6ekfLgMoFfx09SpPFLfohC8sdF39sMqDv3s9uzCJLN55x7MVPnCjHTySKCwEJn8aRIa0QkH6K84GVPdXmVVVlqFNKwLC36cCpUFV4lVoXINJFpI32mTf4G9jJOkQsE/2Fre/cq+bNKDrFCsYfn8rpZ8srDbtx35R6Mw0FIZpEgoNFAaNmeTnasW8hcWO5JoZUv2nL7EC4B2K+lBgQMUwACdRfydJVJH5e4SrDGREOmhS0dPWmYyyIo1lkFH0IbFz6ez4pwth9tAGqAR/KuzWTvoymdOkvXMZNOGIAiJLFMSOkIvWBtUoOlU4N2DuYGQchhZhHTHBQ2a4QYIjxlZwlW0se4Sy3Fjvkrzo1oNStZMtOVCrvsu2GeAIDPQ2sBKfkOeE=
-  file: terraform-provider-launchdarkly_v*
-  file_glob: true
-  overwrite: true
+  file: terraform-provider-launchdarkly_v1.0.0
+  #file_glob: true
+  #overwrite: true
