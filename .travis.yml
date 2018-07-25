@@ -1,0 +1,18 @@
+language: go
+
+go:
+- 1.10.3
+
+before_install:
+- curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+- dep ensure
+
+deploy:
+  provider: releases
+  on:
+    tags: true
+  api_key:
+    secure: mzZ1RCQaMyuSAFxORSWYbhy26lRB4NYx5peb838m56/4HM9Qg1npgpqbqD5OBBpe4IwE/DmVDd5goeT01vhAafkVlWMaO2FSq4RlJzjJGF/4zltb/G4Bgt4gwIuZQEumXJfppb/nVbZZgxwj5xwuyxg1uDzpIM6dMVITkLJcoIeLBMczgF/7ofDnaqct4coo1xaXHWlwh2g59lFyZozFsY31TEW1Il/OPO1H7JsUVpwlb35b4K+EcDQigQ7IGPsQMQ9Iyn1cATMe6aQOa/60e0ZDiGkLXRCN6E0jBuqHDnMOMF4mBmLdjLNVl7wWp4qMfKELXuXZBEi9fblZ+PmpRHO3pkxnsQm8KjmtGRxhwB0CNef15Q2Fc0QeWilyM3msSYNmDcMXstccuDU7U3dbPyZIUjKDuSuFnXiGxtYKXM1OZR7DE6smYaIF+7UzX7FNljJiJt0/tViWmztk9S6GjCn06uOYjyfxjimWJ06uEqXgrUUhCg9EUReeOTo0mCwiIdbuOBoYXE0rGEsvil5gfLISUOFaJHHDppHfteNh5/q0mHL5ggmtSXZL3gOhpUxEIV6R+hqIaOFnuza4wojzeD3QxH/Xo8gOL2QwQvOB4gw57PcvquMmnf9gLBtnSJMQtF4kUotZgV8RfQlNTHGOQ7g+FWDexAKbxJHdPKDYoOI=
+  file: terraform-provider-launchdarkly_v*
+  file_glob: true
+  overwrite: true
