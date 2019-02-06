@@ -1,4 +1,4 @@
-module github.com/coveo/launchdarkly-terraform-provider
+module github.com/coveo/terraform-provider-launchdarkly
 
 require (
 	github.com/agext/levenshtein v1.2.1
@@ -9,6 +9,7 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 	github.com/bgentry/speakeasy v0.1.0
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/coveo/launchdarkly-terraform-provider v0.0.0-20190206094859-ecbc8b2bd874
 	github.com/fatih/color v1.7.0
 	github.com/go-ini/ini v1.38.1
 	github.com/golang/protobuf v1.1.0

@@ -1,4 +1,3 @@
-VERSION = 1.0.0
 SOURCES = $(wildcard *.go)
 
 .PHONY: default
@@ -6,17 +5,21 @@ default: build cross-compile
 
 .PHONY: build
 build:
-	go build -o terraform-provider-launchdarkly_v$(VERSION)
+	go build
 
 .PHONY: clean
 clean:
-	rm terraform-provider-launchdarkly_v*
+	rm -f terraform-provider-launchdarkly
+	rm -rf output
 
 .PHONY: cross-compile
 cross-compile:
-	GOOS=windows GOARCH=amd64 go build -o terraform-provider-launchdarkly_v$(VERSION)-windows
-	GOOS=darwin GOARCH=amd64 go build -o terraform-provider-launchdarkly_v$(VERSION)-osx
-	GOOS=linux GOARCH=amd64 go build -o terraform-provider-launchdarkly_v$(VERSION)-linux
+	GOOS=windows GOARCH=amd64 go build -o output/windows_amd64/terraform-provider-launchdarkly
+	tar -C output/windows_amd64 -czf output/terraform-provider-launchdarkly_windows_amd64.tar.gz terraform-provider-launchdarkly
+	GOOS=darwin GOARCH=amd64 go build -o output/osx_amd64/terraform-provider-launchdarkly
+	tar -C output/osx_amd64 -czf output/terraform-provider-launchdarkly_osx_amd64.tar.gz terraform-provider-launchdarkly
+	GOOS=linux GOARCH=amd64 go build -o output/linux_amd64/terraform-provider-launchdarkly
+	tar -C output/linux_amd64 -czf output/terraform-provider-launchdarkly_linux_amd64.tar.gz terraform-provider-launchdarkly
 
 .PHONY: test
 test: build
