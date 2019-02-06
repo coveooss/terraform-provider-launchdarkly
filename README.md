@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/coveo/fmt-maven-plugin.svg?branch=master)](https://travis-ci.org/coveo/terraform-provider-launchdarkly)
+[![license](http://img.shields.io/badge/license-Apache-brightgreen.svg)](https://github.com/coveo/terraform-provider-launchdarkly/blob/master/LICENSE)
+
 # A Terraform provider for LaunchDarkly feature flags 
 
 This provider allows creating Projects, Environments and Feature Flags in LaunchDarkly.
