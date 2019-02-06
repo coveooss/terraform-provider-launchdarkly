@@ -1,11 +1,7 @@
 language: go
 
 go:
-- 1.10.3
-
-before_install:
-- curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-- dep ensure
+- 1.11.5
 
 deploy:
   provider: releases
