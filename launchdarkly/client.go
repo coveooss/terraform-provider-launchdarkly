@@ -35,9 +35,12 @@ func (c *Client) GetInto(url string, expectedStatus []int, target interface{}) e
 	return err
 }
 
-func (c *Client) Post(url string, body interface{}, expectedStatus []int) ([]byte, error) {
+func (c *Client) Post(url string, body interface{}, expectedStatus []int, target interface{}) error {
 	_, response, err := c.execute("POST", url, body, expectedStatus)
-	return response, err
+
+	json.Unmarshal(response, target)
+
+	return err
 }
 
 func (c *Client) Patch(url string, body interface{}, expectedStatus []int) ([]byte, error) {

@@ -97,7 +97,8 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		CustomProperties: transformedCustomProperties,
 	}
 
-	_, err = client.Post(getFlagCreateUrl(project), payload, []int{201})
+	var response JsonFeatureFlag
+	err = client.Post(getFlagCreateUrl(project), payload, []int{201}, &response)
 	if err != nil {
 		return err
 	}

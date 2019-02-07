@@ -93,7 +93,8 @@ func createDummyEnvironment(client Client, project string) error {
 		Color: "FFFFFF",
 	}
 
-	_, err := client.Post(getEnvironmentCreateUrl(project), payload, []int{201})
+	var response JsonEnvironment
+	err := client.Post(getEnvironmentCreateUrl(project), payload, []int{201}, &response)
 	if err != nil {
 		return err
 	}

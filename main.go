@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/coveo/terraform-provider-launchdarkly/launchdarkly"
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/coveo/launchdarkly-terraform-provider/launchdarkly"
 )
 
 func main() {

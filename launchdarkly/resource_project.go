@@ -36,7 +36,8 @@ func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 		Key:  key,
 	}
 
-	_, err := client.Post(getProjectCreateUrl(), payload, []int{201})
+	var response JsonProject
+	err := client.Post(getProjectCreateUrl(), payload, []int{201}, &response)
 	if err != nil {
 		return err
 	}

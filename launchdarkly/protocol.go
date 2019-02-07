@@ -1,9 +1,11 @@
 package launchdarkly
 
 type JsonEnvironment struct {
-	Name  string `json:"name"`
-	Key   string `json:"key"`
-	Color string `json:"color"`
+	Name      string `json:"name"`
+	Key       string `json:"key"`
+	Color     string `json:"color"`
+	ApiKey    string `json:"apiKey"`
+	MobileKey string `json:"mobileKey"`
 }
 
 type JsonProject struct {

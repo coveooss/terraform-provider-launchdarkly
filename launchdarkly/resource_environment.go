@@ -38,6 +38,14 @@ func resourceEnvironment() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validateColor,
 			},
+			"api_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"mobile_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -59,7 +67,8 @@ func resourceEnvironmentCreate(d *schema.ResourceData, m interface{}) error {
 		Color: color,
 	}
 
-	_, err := client.Post(getEnvironmentCreateUrl(project), payload, []int{201})
+	var response JsonEnvironment
+	err := client.Post(getEnvironmentCreateUrl(project), payload, []int{201}, &response)
 	if err != nil {
 		return err
 	}
@@ -74,6 +83,8 @@ func resourceEnvironmentCreate(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", name)
 	d.Set("key", key)
 	d.Set("color", color)
+	d.Set("api_key", response.ApiKey)
+	d.Set("mobile_key", response.MobileKey)
 
 	return nil
 }
@@ -94,6 +105,8 @@ func resourceEnvironmentRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", response.Name)
 	d.Set("key", response.Key)
 	d.Set("color", response.Color)
+	d.Set("api_key", response.ApiKey)
+	d.Set("mobile_key", response.MobileKey)
 
 	return nil
 }
