@@ -79,6 +79,7 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
+	d.SetId(key)
 	d.Set("name", response.Name)
 	d.Set("key", response.Key)
 

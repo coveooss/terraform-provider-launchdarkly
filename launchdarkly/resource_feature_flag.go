@@ -130,6 +130,7 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 
 	transformedCustomProperties := transformCustomPropertiesFromLaunchDarklyFormat(response.CustomProperties)
 
+	d.SetId(key)
 	d.Set("name", response.Name)
 	d.Set("key", response.Key)
 	d.Set("description", response.Description)
