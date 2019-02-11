@@ -24,7 +24,7 @@ func resourceFeatureFlag() *schema.Resource {
 			"key": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateKey,
+				ValidateFunc: validateFeatureFlagKey,
 			},
 			"description": {
 				Type:     schema.TypeString,

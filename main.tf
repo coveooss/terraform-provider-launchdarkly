@@ -23,11 +23,6 @@ resource "launchdarkly_environment" "hipaa" {
   color = "FF00FF"
 }
 
-data "launchdarkly_environment" "foo" {
-  project_key = "${launchdarkly_environment.dev.project_key}"
-  key = "${launchdarkly_environment.dev.key}"
-}
-
 resource "launchdarkly_feature_flag" "my-flag" {
   project_key = "${launchdarkly_project.my-project.key}"
   key = "my-flag"
@@ -39,4 +34,18 @@ resource "launchdarkly_feature_flag" "my-flag" {
     name = "Some Property"
     value = ["value1", "value2", "value3"]
   }]
+}
+
+data "launchdarkly_project" "data_project" {
+  key = "${launchdarkly_environment.dev.project_key}"
+}
+
+data "launchdarkly_environment" "data_environment" {
+  project_key = "${launchdarkly_environment.dev.project_key}"
+  key = "${launchdarkly_environment.dev.key}"
+}
+
+data "launchdarkly_feature_flag" "data_feature_flag" {
+  project_key = "${launchdarkly_environment.dev.project_key}"
+  key = "${launchdarkly_feature_flag.my-flag.key}"
 }

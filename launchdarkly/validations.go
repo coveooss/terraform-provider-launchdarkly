@@ -25,6 +25,23 @@ func validateKey(v interface{}, k string) ([]string, []error) {
 	return nil, nil
 }
 
+func validateFeatureFlagKey(v interface{}, k string) ([]string, []error) {
+	value := v.(string)
+
+	// I haven't found any meaningful maximum length for those
+
+	matched, err := regexp.MatchString("^[A-Za-z0-9_\\-\\.]+$", value)
+	if err != nil {
+		return nil, []error{err}
+	}
+
+	if !matched {
+		return nil, []error{errors.New(fmt.Sprintf("%s is not a valid key: %s", k, value))}
+	}
+
+	return nil, nil
+}
+
 func validateColor(v interface{}, k string) ([]string, []error) {
 	value := v.(string)
 

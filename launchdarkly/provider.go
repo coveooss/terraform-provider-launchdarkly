@@ -21,7 +21,9 @@ func Provider() *schema.Provider {
 			"launchdarkly_feature_flag": resourceFeatureFlag(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"launchdarkly_environment": dataSourceEnvironment(),
+			"launchdarkly_project":      dataSourceProject(),
+			"launchdarkly_environment":  dataSourceEnvironment(),
+			"launchdarkly_feature_flag": dataSourceFeatureFlag(),
 		},
 
 		ConfigureFunc: providerConfigure,
