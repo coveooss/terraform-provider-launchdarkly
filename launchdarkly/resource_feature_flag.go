@@ -10,6 +10,9 @@ func resourceFeatureFlag() *schema.Resource {
 		Read:   resourceFeatureFlagRead,
 		Update: resourceFeatureFlagUpdate,
 		Delete: resourceFeatureFlagDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceFeatureFlagImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"project_key": {
@@ -68,6 +71,20 @@ func resourceFeatureFlag() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceFeatureFlagImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	projectKey, environment, err := parseCompositeID(d.Id())
+	if err != nil {
+		return nil, err
+	}
+	d.SetId(environment)
+	d.Set("project_key", projectKey)
+	d.Set("key", environment)
+
+	resourceFeatureFlagRead(d, meta)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
