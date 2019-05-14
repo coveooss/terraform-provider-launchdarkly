@@ -11,7 +11,7 @@ func resourceProject() *schema.Resource {
 		Update: resourceProjectUpdate,
 		Delete: resourceProjectDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceProjectImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -28,6 +28,15 @@ func resourceProject() *schema.Resource {
 	}
 }
 
+func resourceProjectImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+
+	d.SetId(d.Id())
+	d.Set("key", d.Id())
+
+	resourceProjectRead(d, meta)
+
+	return []*schema.ResourceData{d}, nil
+}
 
 func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
