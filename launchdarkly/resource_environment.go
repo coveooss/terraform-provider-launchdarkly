@@ -55,17 +55,7 @@ func resourceEnvironment() *schema.Resource {
 }
 
 func resourceEnvironmentImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	projectKey, environment, err := parseCompositeID(d.Id())
-	if err != nil {
-		return nil, err
-	}
-	d.SetId(environment)
-	d.Set("project_key", projectKey)
-	d.Set("key", environment)
-
-	resourceEnvironmentRead(d, meta)
-
-	return []*schema.ResourceData{d}, nil
+	return resourceImport(resourceEnvironmentRead, d, meta)
 }
 
 func resourceEnvironmentCreate(d *schema.ResourceData, m interface{}) error {

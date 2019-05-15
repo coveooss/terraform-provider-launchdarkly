@@ -74,17 +74,7 @@ func resourceFeatureFlag() *schema.Resource {
 }
 
 func resourceFeatureFlagImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	projectKey, environment, err := parseCompositeID(d.Id())
-	if err != nil {
-		return nil, err
-	}
-	d.SetId(environment)
-	d.Set("project_key", projectKey)
-	d.Set("key", environment)
-
-	resourceFeatureFlagRead(d, meta)
-
-	return []*schema.ResourceData{d}, nil
+	return resourceImport(resourceFeatureFlagRead, d, meta)
 }
 
 func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
