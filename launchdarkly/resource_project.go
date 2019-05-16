@@ -10,6 +10,9 @@ func resourceProject() *schema.Resource {
 		Read:   resourceProjectRead,
 		Update: resourceProjectUpdate,
 		Delete: resourceProjectDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceProjectImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -23,6 +26,16 @@ func resourceProject() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceProjectImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+
+	d.SetId(d.Id())
+	d.Set("key", d.Id())
+
+	resourceProjectRead(d, meta)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceProjectCreate(d *schema.ResourceData, m interface{}) error {

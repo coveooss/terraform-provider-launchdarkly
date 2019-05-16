@@ -1,8 +1,9 @@
 package launchdarkly
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
 	"sync"
+
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 // Since we cannot delete the last environment in a project, we use a hack with a temporary dummy
@@ -17,6 +18,9 @@ func resourceEnvironment() *schema.Resource {
 		Read:   resourceEnvironmentRead,
 		Update: resourceEnvironmentUpdate,
 		Delete: resourceEnvironmentDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceEnvironmentImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"project_key": {
@@ -48,6 +52,10 @@ func resourceEnvironment() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceEnvironmentImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	return resourceImport(resourceEnvironmentRead, d, meta)
 }
 
 func resourceEnvironmentCreate(d *schema.ResourceData, m interface{}) error {

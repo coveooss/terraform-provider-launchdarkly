@@ -15,5 +15,16 @@ Download the appropriate binary from the GitHub release, and install it on your 
 
 Have a look at the `main.tf` file for a sample configuration using the provider.
 
+#### Importing resources
+Using the command `import` you need to follow this syntax.
+
+For resources `environment` and `feature_flag` :
+You need 2 values in the resource import ID separated by `:` . 
+
+The project key and the resource key.
+e.g.: `import launchdarkly_environment.my-env critical-updates-dev:dev`
+
+For the `project` resource you only need the project key. e.g.: `import launchdarkly_project.my-project critical-updates-dev`
+
 ## Building the provider
 Clone the repository, and run `make` at the root of the working copy.

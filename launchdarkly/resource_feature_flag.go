@@ -10,6 +10,9 @@ func resourceFeatureFlag() *schema.Resource {
 		Read:   resourceFeatureFlagRead,
 		Update: resourceFeatureFlagUpdate,
 		Delete: resourceFeatureFlagDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceFeatureFlagImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"project_key": {
@@ -68,6 +71,10 @@ func resourceFeatureFlag() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceFeatureFlagImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	return resourceImport(resourceFeatureFlagRead, d, meta)
 }
 
 func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
