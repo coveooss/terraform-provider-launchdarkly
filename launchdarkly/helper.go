@@ -19,7 +19,7 @@ func parseCompositeID(id string) (p1 string, p2 string, err error) {
 
 type importFunc func(d *schema.ResourceData, meta interface{}) error
 
-func resourceImport(readMethod importFunc,d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceImport(readMethod importFunc, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	projectKey, resourceKey, err := parseCompositeID(d.Id())
 	if err != nil {
 		return nil, err
