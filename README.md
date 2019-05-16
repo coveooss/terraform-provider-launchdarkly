@@ -21,7 +21,7 @@ Using the command `import` you need to follow this syntax.
 For resources `environment` and `feature_flag` :
 You need 2 values in the resource import ID separated by `:` . 
 
-The project key in the resource key.
+The project key and the resource key.
 e.g.: `import launchdarkly_environment.my-env critical-updates-dev:dev`
 
 For the `project` resource you only need the project key. e.g.: `import launchdarkly_project.my-project critical-updates-dev`
