@@ -16,7 +16,7 @@ Download the appropriate binary from the GitHub release, and install it on your 
 Have a look at the `main.tf` file for a sample configuration using the provider.
 
 #### Importing resources
-Using the command `import` you need to follow the following syntax.
+Using the command `import` you need to follow this syntax.
 
 For resources `environment` and `feature_flag` :
 You need 2 values in the resource import ID separated by `:` . 
