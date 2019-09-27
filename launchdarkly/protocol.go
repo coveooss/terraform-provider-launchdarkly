@@ -14,6 +14,11 @@ type JsonProject struct {
 	Environments []JsonEnvironment `json:"environments"`
 }
 
+type JsonVariations struct {
+	Value string `json:"value"`
+	Name  string `json:"name"`
+}
+
 type JsonCustomProperty struct {
 	Name  string   `json:"name"`
 	Value []string `json:"value"`
@@ -25,6 +30,7 @@ type JsonFeatureFlag struct {
 	Description      string                        `json:"description"`
 	Temporary        bool                          `json:"temporary"`
 	IncludeInSnippet bool                          `json:"includeInSnippet"`
+	Variations       []JsonVariations              `json:"variations"`
 	Tags             []string                      `json:"tags"`
 	CustomProperties map[string]JsonCustomProperty `json:"customProperties"`
 }

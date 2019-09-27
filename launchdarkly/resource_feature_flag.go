@@ -43,6 +43,22 @@ func resourceFeatureFlag() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"variations": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"tags": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -87,7 +103,10 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
 	tags := d.Get("tags").([]interface{})
+	variations := d.Get("variations").([]interface{})
 	customProperties := d.Get("custom_properties").([]interface{})
+
+	transformedVariations := transformVariationsFromTerraformFormat(variations)
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
 	if err != nil {
@@ -101,6 +120,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		Temporary:        temporary,
 		IncludeInSnippet: includeInSnippet,
 		Tags:             transformTagsFromTerraformFormat(tags),
+		Variations:       transformedVariations,
 		CustomProperties: transformedCustomProperties,
 	}
 
@@ -117,6 +137,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	d.Set("temporary", temporary)
 	d.Set("include_in_snippet", includeInSnippet)
 	d.Set("tags", tags)
+	d.Set("variations", variations)
 	d.Set("custom_properties", customProperties)
 
 	return nil
@@ -144,6 +165,7 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("temporary", response.Temporary)
 	d.Set("include_in_snippet", response.IncludeInSnippet)
 	d.Set("tags", response.Tags)
+	d.Set("variations", response.Variations)
 	d.Set("custom_properties", transformedCustomProperties)
 
 	return nil
@@ -158,7 +180,10 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
 	tags := d.Get("tags").([]interface{})
+	variations := d.Get("variations").([]interface{})
 	customProperties := d.Get("custom_properties").([]interface{})
+
+	transformVariations := transformVariationsFromTerraformFormat(variations)
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
 	if err != nil {
@@ -185,6 +210,10 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 		"op":    "replace",
 		"path":  "/tags",
 		"value": transformTagsFromTerraformFormat(tags),
+	}, {
+		"op":    "replace",
+		"path":  "/tags",
+		"value": transformVariations,
 	}, {
 		"op":    "replace",
 		"path":  "/customProperties",
@@ -219,6 +248,37 @@ func transformTagsFromTerraformFormat(tags []interface{}) []string {
 		transformed[index] = value.(string)
 	}
 
+	return transformed
+}
+
+func transformVariationsFromTerraformFormat(variations []interface{}) []JsonVariations {
+	/*transformed := make([]JsonVariations, 0)
+
+	for index, variation := range variations {
+		json := variation.(map[string]interface{})
+
+		value := json["value"].(string)
+		name := json["name"].(string)
+
+		potate := JsonVariations{
+			Name:  name,
+			Value: value,
+		}
+		transformed[index] = potate
+	}
+	return transformed*/
+
+	transformed := make([]JsonVariations, len(variations))
+	for index, raw := range variations {
+		rawshit := raw.(map[string]interface{})
+		name := rawshit["name"].(string)
+		value := rawshit["value"].(string)
+
+		transformed[index] = JsonVariations{
+			Name:  name,
+			Value: value,
+		}
+	}
 	return transformed
 }
 
