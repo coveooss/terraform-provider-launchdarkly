@@ -6,7 +6,6 @@ import (
 	"regexp"
 )
 
-var supportedMultiVariationsType = [2]string{"number", "string"}
 var supportedVariationsType = [3]string{"number", "string", "boolean"}
 
 func validateKey(v interface{}, k string) ([]string, []error) {

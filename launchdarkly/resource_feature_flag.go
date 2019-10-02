@@ -184,7 +184,6 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("temporary", response.Temporary)
 	d.Set("include_in_snippet", response.IncludeInSnippet)
 	d.Set("tags", response.Tags)
-	d.Set("variations", response.Variations)
 	d.Set("custom_properties", transformedCustomProperties)
 
 	return nil
@@ -264,46 +263,37 @@ func transformTagsFromTerraformFormat(tags []interface{}) []string {
 }
 
 func transformVariationsFromTerraformFormat(variations []interface{}, variationsKind string) ([]JsonVariations, error) {
-	transformed, err := setVariations(variations, variationsKind)
-	if err != nil {
-		return nil, err
-	}
-
-	return transformed, nil
-}
-
-func setVariations(variations []interface{}, variationsKind string) ([]JsonVariations, error) {
-	transformed := make([]JsonVariations, len(variations))
-	for index, raw := range variations {
-		rawshit := raw.(map[string]interface{})
+	transformedVariations := make([]JsonVariations, len(variations))
+	for index, rawVariationValue := range variations {
+		variation := rawVariationValue.(map[string]interface{})
 		var value interface{}
-		name := rawshit["name"].(string)
-		description := rawshit["description"].(string)
+		name := variation["name"].(string)
+		description := variation["description"].(string)
 
 		if variationsKind == "string" {
-			value = rawshit["value"].(string)
+			value = variation["value"].(string)
 		} else if variationsKind == "number" {
-			convertedNumberValue, err := strconv.Atoi(rawshit["value"].(string))
+			convertedNumberValue, err := strconv.Atoi(variation["value"].(string))
 			if err != nil {
 				return nil, err
 			}
 			value = convertedNumberValue
 		} else if variationsKind == "boolean" {
-			convertedBooleanValue, err := strconv.ParseBool(rawshit["value"].(string))
+			convertedBooleanValue, err := strconv.ParseBool(variation["value"].(string))
 			if err != nil {
 				return nil, err
 			}
 			value = convertedBooleanValue
 		}
 
-		transformed[index] = JsonVariations{
+		transformedVariations[index] = JsonVariations{
 			Name:        name,
 			Value:       value,
 			Description: description,
 		}
 	}
 
-	return transformed, nil
+	return transformedVariations, nil
 }
 
 func transformCustomPropertiesFromTerraformFormat(properties []interface{}) (map[string]JsonCustomProperty, error) {
