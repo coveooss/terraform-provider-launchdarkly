@@ -65,7 +65,7 @@ func resourceFeatureFlag() *schema.Resource {
 						},
 						"name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 						"description": {
 							Type:     schema.TypeString,
