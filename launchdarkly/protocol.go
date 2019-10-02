@@ -15,8 +15,9 @@ type JsonProject struct {
 }
 
 type JsonVariations struct {
-	Value string `json:"value"`
-	Name  string `json:"name"`
+	Value       interface{} `json:"value"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
 }
 
 type JsonCustomProperty struct {

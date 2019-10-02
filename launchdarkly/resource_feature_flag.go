@@ -1,6 +1,8 @@
 package launchdarkly
 
 import (
+	"strconv"
+
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -43,9 +45,18 @@ func resourceFeatureFlag() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"variations_kind": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "boolean",
+				ValidateFunc: validateFeatureFlagVariationsType,
+				ForceNew:     true,
+			},
 			"variations": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MinItems: 2,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"value": {
@@ -55,6 +66,10 @@ func resourceFeatureFlag() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -103,10 +118,14 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
 	tags := d.Get("tags").([]interface{})
+	variationsKind := d.Get("variations_kind").(string)
 	variations := d.Get("variations").([]interface{})
 	customProperties := d.Get("custom_properties").([]interface{})
 
-	transformedVariations := transformVariationsFromTerraformFormat(variations)
+	transformedVariations, err := transformVariationsFromTerraformFormat(variations, variationsKind)
+	if err != nil {
+		return err
+	}
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
 	if err != nil {
@@ -180,10 +199,7 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
 	tags := d.Get("tags").([]interface{})
-	variations := d.Get("variations").([]interface{})
 	customProperties := d.Get("custom_properties").([]interface{})
-
-	transformVariations := transformVariationsFromTerraformFormat(variations)
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
 	if err != nil {
@@ -210,10 +226,6 @@ func resourceFeatureFlagUpdate(d *schema.ResourceData, m interface{}) error {
 		"op":    "replace",
 		"path":  "/tags",
 		"value": transformTagsFromTerraformFormat(tags),
-	}, {
-		"op":    "replace",
-		"path":  "/tags",
-		"value": transformVariations,
 	}, {
 		"op":    "replace",
 		"path":  "/customProperties",
@@ -251,35 +263,47 @@ func transformTagsFromTerraformFormat(tags []interface{}) []string {
 	return transformed
 }
 
-func transformVariationsFromTerraformFormat(variations []interface{}) []JsonVariations {
-	/*transformed := make([]JsonVariations, 0)
-
-	for index, variation := range variations {
-		json := variation.(map[string]interface{})
-
-		value := json["value"].(string)
-		name := json["name"].(string)
-
-		potate := JsonVariations{
-			Name:  name,
-			Value: value,
-		}
-		transformed[index] = potate
+func transformVariationsFromTerraformFormat(variations []interface{}, variationsKind string) ([]JsonVariations, error) {
+	transformed, err := setVariations(variations, variationsKind)
+	if err != nil {
+		return nil, err
 	}
-	return transformed*/
 
+	return transformed, nil
+}
+
+func setVariations(variations []interface{}, variationsKind string) ([]JsonVariations, error) {
 	transformed := make([]JsonVariations, len(variations))
 	for index, raw := range variations {
 		rawshit := raw.(map[string]interface{})
+		var value interface{}
 		name := rawshit["name"].(string)
-		value := rawshit["value"].(string)
+		description := rawshit["description"].(string)
+
+		if variationsKind == "string" {
+			value = rawshit["value"].(string)
+		} else if variationsKind == "number" {
+			convertedNumberValue, err := strconv.Atoi(rawshit["value"].(string))
+			if err != nil {
+				return nil, err
+			}
+			value = convertedNumberValue
+		} else if variationsKind == "boolean" {
+			convertedBooleanValue, err := strconv.ParseBool(rawshit["value"].(string))
+			if err != nil {
+				return nil, err
+			}
+			value = convertedBooleanValue
+		}
 
 		transformed[index] = JsonVariations{
-			Name:  name,
-			Value: value,
+			Name:        name,
+			Value:       value,
+			Description: description,
 		}
 	}
-	return transformed
+
+	return transformed, nil
 }
 
 func transformCustomPropertiesFromTerraformFormat(properties []interface{}) (map[string]JsonCustomProperty, error) {

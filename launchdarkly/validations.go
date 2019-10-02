@@ -6,6 +6,9 @@ import (
 	"regexp"
 )
 
+var supportedMultiVariationsType = [2]string{"number", "string"}
+var supportedVariationsType = [3]string{"number", "string", "boolean"}
+
 func validateKey(v interface{}, k string) ([]string, []error) {
 	value := v.(string)
 
@@ -40,6 +43,22 @@ func validateFeatureFlagKey(v interface{}, k string) ([]string, []error) {
 	}
 
 	return nil, nil
+}
+
+func validateFeatureFlagVariationsType(v interface{}, k string) ([]string, []error) {
+	value, ok := v.(string)
+
+	if !ok {
+		return nil, []error{errors.New(fmt.Sprintf("expected %s to be string", k))}
+	}
+
+	for _, validVariationsType := range supportedVariationsType {
+		if value == validVariationsType {
+			return nil, nil
+		}
+	}
+
+	return nil, []error{errors.New(fmt.Sprintf("expected %s to be one of %v, got %s", k, []string{"number", "boolean", "string"}, value))}
 }
 
 func validateColor(v interface{}, k string) ([]string, []error) {
