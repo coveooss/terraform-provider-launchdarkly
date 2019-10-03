@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-var supportedVariationsType = [3]string{"number", "string", "boolean"}
+var supportedVariationsType = [3]string{VARIATIONS_NUMBER_KIND, VARIATIONS_STRING_KIND, VARIATIONS_BOOLEAN_KIND}
 
 func validateKey(v interface{}, k string) ([]string, []error) {
 	value := v.(string)
@@ -48,7 +48,7 @@ func validateFeatureFlagVariationsType(v interface{}, k string) ([]string, []err
 	value, ok := v.(string)
 
 	if !ok {
-		return nil, []error{errors.New(fmt.Sprintf("expected %s to be string", k))}
+		return nil, []error{errors.New(fmt.Sprintf("expected %s to be a string", k))}
 	}
 
 	for _, validVariationsType := range supportedVariationsType {
@@ -58,6 +58,20 @@ func validateFeatureFlagVariationsType(v interface{}, k string) ([]string, []err
 	}
 
 	return nil, []error{errors.New(fmt.Sprintf("expected %s to be one of %v, got %s", k, []string{"number", "boolean", "string"}, value))}
+}
+
+func validateVariationValue(v interface{}, k string) ([]string, []error) {
+	value, ok := v.(string)
+
+	if !ok {
+		return nil, []error{errors.New(fmt.Sprintf("expected %s to be a string", k))}
+	}
+
+	if len(value) < 1 {
+		return nil, []error{errors.New(fmt.Sprintf("%s cannot be an empty string", k))}
+	}
+
+	return nil, nil
 }
 
 func validateColor(v interface{}, k string) ([]string, []error) {

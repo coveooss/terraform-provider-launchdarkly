@@ -6,6 +6,14 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+const DEFAULT_VARIATIONS_KIND = "boolean"
+const VARIATION_NAME_KEY = "name"
+const VARIATION_DESCRIPTION_KEY = "description"
+const VARIATION_VALUE_KEY = "value"
+const VARIATIONS_STRING_KIND = "string"
+const VARIATIONS_NUMBER_KIND = "number"
+const VARIATIONS_BOOLEAN_KIND = "boolean"
+
 func resourceFeatureFlag() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceFeatureFlagCreate,
@@ -48,7 +56,7 @@ func resourceFeatureFlag() *schema.Resource {
 			"variations_kind": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "boolean",
+				Default:      DEFAULT_VARIATIONS_KIND,
 				ValidateFunc: validateFeatureFlagVariationsType,
 				ForceNew:     true,
 			},
@@ -60,8 +68,9 @@ func resourceFeatureFlag() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateVariationValue,
 						},
 						"name": {
 							Type:     schema.TypeString,
@@ -267,19 +276,19 @@ func transformVariationsFromTerraformFormat(variations []interface{}, variations
 	for index, rawVariationValue := range variations {
 		variation := rawVariationValue.(map[string]interface{})
 		var value interface{}
-		name := variation["name"].(string)
-		description := variation["description"].(string)
+		name := variation[VARIATION_NAME_KEY].(string)
+		description := variation[VARIATION_DESCRIPTION_KEY].(string)
 
-		if variationsKind == "string" {
-			value = variation["value"].(string)
-		} else if variationsKind == "number" {
-			convertedNumberValue, err := strconv.Atoi(variation["value"].(string))
+		if variationsKind == VARIATIONS_STRING_KIND {
+			value = variation[VARIATION_VALUE_KEY].(string)
+		} else if variationsKind == VARIATIONS_NUMBER_KIND {
+			convertedNumberValue, err := strconv.Atoi(variation[VARIATION_VALUE_KEY].(string))
 			if err != nil {
 				return nil, err
 			}
 			value = convertedNumberValue
-		} else if variationsKind == "boolean" {
-			convertedBooleanValue, err := strconv.ParseBool(variation["value"].(string))
+		} else if variationsKind == VARIATIONS_BOOLEAN_KIND {
+			convertedBooleanValue, err := strconv.ParseBool(variation[VARIATION_VALUE_KEY].(string))
 			if err != nil {
 				return nil, err
 			}
