@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-const DEFAULT_VARIATIONS_KIND = "boolean"
 const VARIATION_NAME_KEY = "name"
 const VARIATION_DESCRIPTION_KEY = "description"
 const VARIATION_VALUE_KEY = "value"
 const VARIATIONS_STRING_KIND = "string"
 const VARIATIONS_NUMBER_KIND = "number"
 const VARIATIONS_BOOLEAN_KIND = "boolean"
+const DEFAULT_VARIATIONS_KIND = VARIATIONS_BOOLEAN_KIND
 
 func resourceFeatureFlag() *schema.Resource {
 	return &schema.Resource{
