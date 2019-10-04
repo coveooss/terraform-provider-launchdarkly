@@ -50,3 +50,5 @@ require (
 	google.golang.org/genproto v0.0.0-20180718234121-fedd2861243f
 	google.golang.org/grpc v1.13.0
 )
+
+go 1.13

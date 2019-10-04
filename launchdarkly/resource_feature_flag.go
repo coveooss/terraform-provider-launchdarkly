@@ -1,8 +1,18 @@
 package launchdarkly
 
 import (
+	"strconv"
+
 	"github.com/hashicorp/terraform/helper/schema"
 )
+
+const VARIATION_NAME_KEY = "name"
+const VARIATION_DESCRIPTION_KEY = "description"
+const VARIATION_VALUE_KEY = "value"
+const VARIATIONS_STRING_KIND = "string"
+const VARIATIONS_NUMBER_KIND = "number"
+const VARIATIONS_BOOLEAN_KIND = "boolean"
+const DEFAULT_VARIATIONS_KIND = VARIATIONS_BOOLEAN_KIND
 
 func resourceFeatureFlag() *schema.Resource {
 	return &schema.Resource{
@@ -42,6 +52,36 @@ func resourceFeatureFlag() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+			"variations_kind": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      DEFAULT_VARIATIONS_KIND,
+				ValidateFunc: validateFeatureFlagVariationsType,
+				ForceNew:     true,
+			},
+			"variations": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 2,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"value": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateVariationValue,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
 			},
 			"tags": {
 				Type:     schema.TypeList,
@@ -87,7 +127,14 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
 	tags := d.Get("tags").([]interface{})
+	variationsKind := d.Get("variations_kind").(string)
+	variations := d.Get("variations").([]interface{})
 	customProperties := d.Get("custom_properties").([]interface{})
+
+	transformedVariations, err := transformVariationsFromTerraformFormat(variations, variationsKind)
+	if err != nil {
+		return err
+	}
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
 	if err != nil {
@@ -101,6 +148,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		Temporary:        temporary,
 		IncludeInSnippet: includeInSnippet,
 		Tags:             transformTagsFromTerraformFormat(tags),
+		Variations:       transformedVariations,
 		CustomProperties: transformedCustomProperties,
 	}
 
@@ -117,6 +165,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	d.Set("temporary", temporary)
 	d.Set("include_in_snippet", includeInSnippet)
 	d.Set("tags", tags)
+	d.Set("variations", variations)
 	d.Set("custom_properties", customProperties)
 
 	return nil
@@ -220,6 +269,40 @@ func transformTagsFromTerraformFormat(tags []interface{}) []string {
 	}
 
 	return transformed
+}
+
+func transformVariationsFromTerraformFormat(variations []interface{}, variationsKind string) ([]JsonVariations, error) {
+	transformedVariations := make([]JsonVariations, len(variations))
+	for index, rawVariationValue := range variations {
+		variation := rawVariationValue.(map[string]interface{})
+		var value interface{}
+		name := variation[VARIATION_NAME_KEY].(string)
+		description := variation[VARIATION_DESCRIPTION_KEY].(string)
+
+		if variationsKind == VARIATIONS_STRING_KIND {
+			value = variation[VARIATION_VALUE_KEY].(string)
+		} else if variationsKind == VARIATIONS_NUMBER_KIND {
+			convertedNumberValue, err := strconv.Atoi(variation[VARIATION_VALUE_KEY].(string))
+			if err != nil {
+				return nil, err
+			}
+			value = convertedNumberValue
+		} else if variationsKind == VARIATIONS_BOOLEAN_KIND {
+			convertedBooleanValue, err := strconv.ParseBool(variation[VARIATION_VALUE_KEY].(string))
+			if err != nil {
+				return nil, err
+			}
+			value = convertedBooleanValue
+		}
+
+		transformedVariations[index] = JsonVariations{
+			Name:        name,
+			Value:       value,
+			Description: description,
+		}
+	}
+
+	return transformedVariations, nil
 }
 
 func transformCustomPropertiesFromTerraformFormat(properties []interface{}) (map[string]JsonCustomProperty, error) {
