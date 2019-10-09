@@ -4,3 +4,8 @@ terraform-provider-launchdarkly
 output
 .terraform
 crash.log
+.idea/.gitignore
+.idea/misc.xml
+.idea/modules.xml
+.idea/terraform-provider-launchdarkly.iml
+.idea/vcs.xml

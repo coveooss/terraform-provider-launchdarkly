@@ -28,3 +28,7 @@ For the `project` resource you only need the project key. e.g.: `import launchda
 
 ## Building the provider
 Clone the repository, and run `make` at the root of the working copy.
+
+## Testing the provider
+run `make test` at the root of the working copy.
+
