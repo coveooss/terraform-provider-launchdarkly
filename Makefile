@@ -7,6 +7,7 @@ default: build cross-compile
 .PHONY: build
 build:
 	go build
+	go test $(TEST) -timeout=30s -parallel=4
 
 .PHONY: clean
 clean:
