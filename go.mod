@@ -1,54 +1,75 @@
 module github.com/coveo/terraform-provider-launchdarkly
 
 require (
-	github.com/agext/levenshtein v1.2.1
-	github.com/apparentlymart/go-cidr v0.0.0-20170616213631-2bd8b58cf427
-	github.com/apparentlymart/go-textseg v0.0.0-20170531203952-b836f5c4d331
-	github.com/armon/go-radix v0.0.0-20170727155443-1fca145dffbc
-	github.com/aws/aws-sdk-go v1.14.29
+	cloud.google.com/go/datastore v1.0.0 // indirect
+	github.com/Azure/azure-sdk-for-go v34.0.0+incompatible // indirect
+	github.com/Azure/go-autorest/autorest v0.9.1 // indirect
+	github.com/Azure/go-autorest/autorest/adal v0.6.0 // indirect
+	github.com/agext/levenshtein v1.2.2
+	github.com/apparentlymart/go-cidr v1.0.0
+	github.com/apparentlymart/go-textseg v1.0.0
+	github.com/armon/go-radix v1.0.0
+	github.com/aws/aws-sdk-go v1.22.0
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 	github.com/bgentry/speakeasy v0.1.0
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/coreos/etcd v3.3.16+incompatible // indirect
 	github.com/coveo/launchdarkly-terraform-provider v0.0.0-20190206094859-ecbc8b2bd874
 	github.com/fatih/color v1.7.0
 	github.com/go-ini/ini v1.38.1
-	github.com/golang/protobuf v1.1.0
-	github.com/hashicorp/errwrap v0.0.0-20180715044906-d6c0cd880357
-	github.com/hashicorp/go-cleanhttp v0.0.0-20171218145408-d5fe4b57a186
-	github.com/hashicorp/go-getter v0.0.0-20180709183828-a33f09ce9fee
-	github.com/hashicorp/go-hclog v0.0.0-20180709165350-ff2cf002a8dd
-	github.com/hashicorp/go-multierror v0.0.0-20180717150148-3d5d8f294aa0
-	github.com/hashicorp/go-plugin v0.0.0-20180331002553-e8d22c780116
-	github.com/hashicorp/go-safetemp v0.0.0-20180326211150-b1a1dbde6fdc
-	github.com/hashicorp/go-uuid v0.0.0-20180228145832-27454136f036
-	github.com/hashicorp/go-version v0.0.0-20180716215031-270f2f71b1ee
-	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce
-	github.com/hashicorp/hcl2 v0.0.0-20180718224135-41cff854d815
-	github.com/hashicorp/hil v0.0.0-20170627220502-fa9f258a9250
-	github.com/hashicorp/terraform v0.11.7
+	github.com/golang/protobuf v1.3.2
+	github.com/hashicorp/atlas-go v0.0.0-20170808163836-8261ea080105 // indirect
+	github.com/hashicorp/consul/api v1.2.0 // indirect
+	github.com/hashicorp/errwrap v1.0.0
+	github.com/hashicorp/go-cleanhttp v0.5.1
+	github.com/hashicorp/go-getter v1.3.1-0.20190627223108-da0323b9545e
+	github.com/hashicorp/go-hclog v0.9.2
+	github.com/hashicorp/go-multierror v1.0.0
+	github.com/hashicorp/go-plugin v1.0.1-0.20190610192547-a1bc61569a26
+	github.com/hashicorp/go-retryablehttp v0.6.2 // indirect
+	github.com/hashicorp/go-rootcerts v1.0.1 // indirect
+	github.com/hashicorp/go-safetemp v1.0.0
+	github.com/hashicorp/go-uuid v1.0.1
+	github.com/hashicorp/go-version v1.2.0
+	github.com/hashicorp/hcl v1.0.0
+	github.com/hashicorp/hcl2 v0.0.0-20190821123243-0c888d1241f6
+	github.com/hashicorp/hil v0.0.0-20190212112733-ab17b08d6590
+	github.com/hashicorp/terraform v0.12.8
 	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb
-	github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
-	github.com/mattn/go-colorable v0.0.9
-	github.com/mattn/go-isatty v0.0.3
-	github.com/mitchellh/cli v0.0.0-20180414170447-c48282d14eba
-	github.com/mitchellh/copystructure v0.0.0-20170525013902-d23ffcb85de3
-	github.com/mitchellh/go-homedir v0.0.0-20180523094522-3864e76763d9
-	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77
-	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7
-	github.com/mitchellh/hashstructure v0.0.0-20170609045927-2bca23e0e452
-	github.com/mitchellh/mapstructure v0.0.0-20180715050151-f15292f7a699
-	github.com/mitchellh/reflectwalk v0.0.0-20170726202117-63d60e9d0dbc
+	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
+	github.com/joyent/triton-go v1.7.0 // indirect
+	github.com/lusis/go-artifactory v0.0.0-20180304164534-a47f63f234b2 // indirect
+	github.com/masterzen/winrm v0.0.0-20190308153735-1d17eaf15943 // indirect
+	github.com/mattn/go-colorable v0.1.2
+	github.com/mattn/go-isatty v0.0.8
+	github.com/mattn/go-shellwords v1.0.6 // indirect
+	github.com/mitchellh/cli v1.0.0
+	github.com/mitchellh/copystructure v1.0.0
+	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mitchellh/go-testing-interface v1.0.0
+	github.com/mitchellh/go-wordwrap v1.0.0
+	github.com/mitchellh/hashstructure v1.0.0
+	github.com/mitchellh/mapstructure v1.1.2
+	github.com/mitchellh/panicwrap v0.0.0-20190228164358-f67bf3f3d291 // indirect
+	github.com/mitchellh/reflectwalk v1.0.0
 	github.com/oklog/run v1.0.0
-	github.com/posener/complete v1.1.1
-	github.com/ulikunitz/xz v0.5.4
-	github.com/zclconf/go-cty v0.0.0-20180718220526-02bd58e97b57
-	golang.org/x/crypto v0.0.0-20180718160520-a2144134853f
-	golang.org/x/net v0.0.0-20180719001425-81d44fd177a9
-	golang.org/x/sys v0.0.0-20180715085529-ac767d655b30
-	golang.org/x/text v0.3.0
-	google.golang.org/api v0.0.0-20180724000608-2c45710c7f3f
-	google.golang.org/genproto v0.0.0-20180718234121-fedd2861243f
-	google.golang.org/grpc v1.13.0
+	github.com/packer-community/winrmcp v0.0.0-20180921211025-c76d91c1e7db // indirect
+	github.com/posener/complete v1.2.1
+	github.com/rogpeppe/godef v1.1.1 // indirect
+	github.com/ryanuber/columnize v2.1.0+incompatible // indirect
+	github.com/terraform-providers/terraform-provider-aws v1.60.0 // indirect
+	github.com/terraform-providers/terraform-provider-openstack v1.23.0 // indirect
+	github.com/ulikunitz/xz v0.5.5
+	github.com/zclconf/go-cty v1.0.1-0.20190708163926-19588f92a98f
+	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa
+	golang.org/x/text v0.3.2
+	golang.org/x/tools v0.0.0-20191010171213-8abd42400456 // indirect
+	google.golang.org/api v0.8.0
+	google.golang.org/appengine v1.6.5 // indirect
+	google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64
+	google.golang.org/grpc v1.21.1
 )
 
 go 1.13

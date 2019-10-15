@@ -34,6 +34,34 @@ func dataSourceFeatureFlag() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"default_targeting_rule": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"default_off_targeting_rule": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"variations": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"tags": {
 				Type:     schema.TypeList,
 				Computed: true,
