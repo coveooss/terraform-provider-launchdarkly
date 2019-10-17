@@ -1,5 +1,5 @@
 SOURCES = $(wildcard *.go)
-TEST?=./...
+TEST?=./launchdarkly
 
 .PHONY: default
 default: build cross-compile

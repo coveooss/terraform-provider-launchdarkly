@@ -4,8 +4,11 @@ import (
 	"testing"
 )
 
+const launchDarklyApiUrl = "https://app.launchdarkly.com/api/v2/"
+const aProjectName = "my-project"
+
 func TestGetProjectCreateUrl(t *testing.T) {
-	expectedUrl := "https://app.launchdarkly.com/api/v2/projects"
+	expectedUrl := launchDarklyApiUrl + "projects"
 	returnedUrl := getProjectCreateUrl()
 	if returnedUrl != expectedUrl {
 		t.Errorf("getProjectCreateUrl expected return value was '%s' but got '%s'", expectedUrl, returnedUrl)
@@ -13,8 +16,7 @@ func TestGetProjectCreateUrl(t *testing.T) {
 }
 
 func TestGetProjectUrl(t *testing.T) {
-	aProjectName := "my-project"
-	expectedUrl := "https://app.launchdarkly.com/api/v2/projects/" + aProjectName
+	expectedUrl := launchDarklyApiUrl + "projects/" + aProjectName
 	returnedUrl := getProjectUrl(aProjectName)
 	if returnedUrl != expectedUrl {
 		t.Errorf("getProjectUrl expected return value was '%s' but got '%s'", expectedUrl, returnedUrl)
@@ -22,8 +24,7 @@ func TestGetProjectUrl(t *testing.T) {
 }
 
 func TestGetFlagCreateUrl(t *testing.T) {
-	aProjectName := "my-project"
-	expectedUrl := "https://app.launchdarkly.com/api/v2/flags/" + aProjectName
+	expectedUrl := launchDarklyApiUrl + "flags/" + aProjectName
 	returnedUrl := getFlagCreateUrl(aProjectName)
 	if returnedUrl != expectedUrl {
 		t.Errorf("getFlagCreateUrl expected return value was '%s' but got '%s'", expectedUrl, returnedUrl)
@@ -31,9 +32,8 @@ func TestGetFlagCreateUrl(t *testing.T) {
 }
 
 func TestGetFlagUrl(t *testing.T) {
-	aProjectName := "my-project"
 	aFlagName := "my-super-flag"
-	expectedUrl := "https://app.launchdarkly.com/api/v2/flags/" + aProjectName + "/" + aFlagName
+	expectedUrl := launchDarklyApiUrl + "flags/" + aProjectName + "/" + aFlagName
 	returnedUrl := getFlagUrl(aProjectName, aFlagName)
 	if returnedUrl != expectedUrl {
 		t.Errorf("getFlagUrl expected return value was '%s' but got '%s'", expectedUrl, returnedUrl)
@@ -41,8 +41,7 @@ func TestGetFlagUrl(t *testing.T) {
 }
 
 func TestGetEnvironmentCreateUrl(t *testing.T) {
-	aProjectName := "my-project"
-	expectedUrl := "https://app.launchdarkly.com/api/v2/projects/" + aProjectName + "/environments"
+	expectedUrl := launchDarklyApiUrl + "projects/" + aProjectName + "/environments"
 	returnedUrl := getEnvironmentCreateUrl(aProjectName)
 	if returnedUrl != expectedUrl {
 		t.Errorf("getEnvironmentCreateUrl expected return value was '%s' but got '%s'", expectedUrl, returnedUrl)
@@ -50,9 +49,8 @@ func TestGetEnvironmentCreateUrl(t *testing.T) {
 }
 
 func TestGetEnvironmentUrl(t *testing.T) {
-	aProjectName := "my-project"
 	anEnvironmentName := "my-marvelous-environment"
-	expectedUrl := "https://app.launchdarkly.com/api/v2/projects/" + aProjectName + "/environments/" + anEnvironmentName
+	expectedUrl := launchDarklyApiUrl + "projects/" + aProjectName + "/environments/" + anEnvironmentName
 	returnedUrl := getEnvironmentUrl(aProjectName, anEnvironmentName)
 	if returnedUrl != expectedUrl {
 		t.Errorf("getEnvironmentUrl expected return value was '%s' but got '%s'", expectedUrl, returnedUrl)
