@@ -1,4 +1,5 @@
 SOURCES = $(wildcard *.go)
+TEST?=./launchdarkly
 
 .PHONY: default
 default: build cross-compile
@@ -6,6 +7,7 @@ default: build cross-compile
 .PHONY: build
 build:
 	go build
+	go test $(TEST) -timeout=30s -parallel=4
 
 .PHONY: clean
 clean:
@@ -22,7 +24,5 @@ cross-compile:
 	tar -C output/linux_amd64 -czf output/terraform-provider-launchdarkly_linux_amd64.tar.gz terraform-provider-launchdarkly
 
 .PHONY: test
-test: build
-	terraform init
-	terraform apply
-	terraform destroy
+test:
+	go test $(TEST) -timeout=30s -parallel=4

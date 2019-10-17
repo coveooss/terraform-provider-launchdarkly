@@ -83,7 +83,7 @@ func validateColor(v interface{}, k string) ([]string, []error) {
 	}
 
 	if !matched {
-		return nil, []error{errors.New(fmt.Sprintf("%s is not a valid RGB color code: %s", k, value))}
+		return nil, []error{errors.New(fmt.Sprintf("%s is not a valid HEX color code: %s", k, value))}
 	}
 
 	return nil, nil
