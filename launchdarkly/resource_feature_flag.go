@@ -63,16 +63,45 @@ func resourceFeatureFlag() *schema.Resource {
 				ForceNew:     true,
 			},
 			"default_targeting_rule": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeList,
 				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"value": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateVariationValue,
+						},
+						"environment": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validateKey ,
+						},
+					},
+				},
 			},
 			"default_off_targeting_rule": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeList,
 				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"value": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateVariationValue,
+						},
+						"environment": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validateKey ,
+						},
+					},
+				},
 			},
 			"variations": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MinItems: 2,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -136,10 +165,10 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	temporary := d.Get("temporary").(bool)
 	includeInSnippet := d.Get("include_in_snippet").(bool)
 	tags := d.Get("tags").([]interface{})
-	variationsKind := d.Get("variations_kind").(string)
+	variationsKind := validateOrDefaultToBoolean(d.Get("variations_kind").(string))
 	variations := d.Get("variations").([]interface{})
-	defaultTargetingRule := d.Get("default_targeting_rule").(string)
-	defaultOffTargetingRule := d.Get("default_off_targeting_rule").(string)
+	defaultTargetingRule := d.Get("default_targeting_rule").([]interface{})
+	defaultOffTargetingRule := d.Get("default_off_targeting_rule").([]interface{})
 	customProperties := d.Get("custom_properties").([]interface{})
 
 	transformedVariations, err := transformVariationsFromTerraformFormat(variations, variationsKind)
@@ -148,16 +177,6 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
-	if err != nil {
-		return err
-	}
-
-	transformedDefaultTargetingRule, err := getDefaultVariationIndex(variations, defaultTargetingRule)
-	if err != nil {
-		return err
-	}
-
-	transformedDefaultOffTargetingRule, err := getDefaultOffVariationIndex(variations, defaultOffTargetingRule)
 	if err != nil {
 		return err
 	}
@@ -179,19 +198,22 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	patchPayload := []map[string]interface{}{{
-		"op":    "replace",
-		"path":  "/environments/dev/fallthrough/variation",
-		"value": transformedDefaultTargetingRule,
-	}, {
-		"op":    "replace",
-		"path":  "/environments/dev/offVariation",
-		"value": transformedDefaultOffTargetingRule,
-	}}
-
-	_, err = client.Patch(getFlagUrl(project, key), patchPayload, []int{200})
+	defaultPayload, err := createPayloadForDefaultOnVariations(defaultTargetingRule, variations)
 	if err != nil {
 		return err
+	}
+	offDefaultPayload, err := createPayloadForDefaultOffVariations(defaultOffTargetingRule, variations)
+	if err != nil {
+		return err
+	}
+
+	patchPayload := append(defaultPayload, offDefaultPayload...)
+
+	if len(patchPayload) > 0 {
+		_, err = client.Patch(getFlagUrl(project, key), patchPayload, []int{200})
+		if err != nil {
+			return err
+		}
 	}
 
 	d.SetId(key)
@@ -232,6 +254,11 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("temporary", response.Temporary)
 	d.Set("include_in_snippet", response.IncludeInSnippet)
 	d.Set("tags", response.Tags)
+	// This is a hack to prevent recreating a feature flag when it was created with an older
+	// version of the provider that didn't supported specifying the variations kind
+	if response.VariationsKind == VARIATIONS_BOOLEAN_KIND {
+		d.Set("variations_kind", response.VariationsKind)
+	}
 	if err := d.Set("variations", transformedVariations); err != nil {
 		return err
 	}
@@ -244,7 +271,6 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 
 func resourceFeatureFlagUpdate(resourceData *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
-
 	project := resourceData.Get("project_key").(string)
 	name := resourceData.Get("name").(string)
 	description := resourceData.Get("description").(string)
@@ -252,8 +278,9 @@ func resourceFeatureFlagUpdate(resourceData *schema.ResourceData, m interface{})
 	includeInSnippet := resourceData.Get("include_in_snippet").(bool)
 	tags := resourceData.Get("tags").([]interface{})
 	customProperties := resourceData.Get("custom_properties").([]interface{})
-	defaultTargetingRule := resourceData.Get("default_targeting_rule").(string)
-	defaultOffTargetingRule := resourceData.Get("default_off_targeting_rule").(string)
+	variations := resourceData.Get("variations").([]interface{})
+	defaultTargetingRule := resourceData.Get("default_targeting_rule").([]interface{})
+	defaultOffTargetingRule := resourceData.Get("default_off_targeting_rule").([]interface{})
 
 	transformedCustomProperties, err := transformCustomPropertiesFromTerraformFormat(customProperties)
 	if err != nil {
@@ -263,19 +290,19 @@ func resourceFeatureFlagUpdate(resourceData *schema.ResourceData, m interface{})
 	if err := applyChangesToVariations(resourceData, client); err != nil {
 		return err
 	}
-
-	transformedDefaultTargetingRule, err := getDefaultVariationIndex(resourceData.Get("variations").([]interface{}), defaultTargetingRule)
+	
+	defaultPayload, err := createPayloadForDefaultOnVariations(defaultTargetingRule, variations)
+	if err != nil {
+		return err
+	}
+	offDefaultPayload, err := createPayloadForDefaultOffVariations(defaultOffTargetingRule, variations)
 	if err != nil {
 		return err
 	}
 
-	transformedDefaultOffTargetingRule, err := getDefaultOffVariationIndex(resourceData.Get("variations").([]interface{}), defaultOffTargetingRule)
-	if err != nil {
-		return err
-	}
-
-
-	payload := []map[string]interface{}{{
+	defaultVariationsPayload := append(defaultPayload, offDefaultPayload...)
+	
+	mainPayload := []map[string]interface{}{{
 		"op":    "replace",
 		"path":  "/name",
 		"value": name,
@@ -299,15 +326,9 @@ func resourceFeatureFlagUpdate(resourceData *schema.ResourceData, m interface{})
 		"op":    "replace",
 		"path":  "/customProperties",
 		"value": transformedCustomProperties,
-	},{
-		"op":    "replace",
-		"path":  "/environments/dev/fallthrough/variation",
-		"value": transformedDefaultTargetingRule,
-	}, {
-		"op":    "replace",
-		"path":  "/environments/dev/offVariation",
-		"value": transformedDefaultOffTargetingRule,
 	}}
+
+	payload := append(mainPayload, defaultVariationsPayload...)
 
 	_, err = client.Patch(getFlagUrl(project, resourceData.Id()), payload, []int{200})
 	if err != nil {
@@ -317,6 +338,7 @@ func resourceFeatureFlagUpdate(resourceData *schema.ResourceData, m interface{})
 	return nil
 }
 
+//TODO Validate what happen to the state if someone pu an invalid default value
 func resourceFeatureFlagDelete(d *schema.ResourceData, m interface{}) error {
 	client := m.(Client)
 
@@ -341,15 +363,75 @@ func transformTagsFromTerraformFormat(tags []interface{}) []string {
 }
 
 func getDefaultVariationIndex(variations []interface{}, variationValue string) (int, error) {
-	if len(variationValue) > 0 {
-		return getVariationIndex(variations, variationValue)
+	if len(variations) > 0 {
+		if len(variationValue) > 0 {
+			return getVariationIndex(variations, variationValue)
+		}
+		return len(variations) - 1, nil
 	}
-	return len(variations) - 1, nil
+	return 1, nil
 }
 
+/*func transformDefaultVariationsFromTerraformFormat(defaultVariations []interface{}, variations []interface{}, variationsKind string) ([]DefaultVariations, error) {
+	transformedDefaultVariations := make([]DefaultVariations, len(defaultVariations))
+	for index, rawVariationValue := range  {
+		variation := rawVariationValue.(map[string]interface{})
+
+		value := variation["value"].(string)
+		environment := variation["environment"].(string)
+
+
+		transformedDefaultVariations[index] = DefaultVariations{
+			Value:             value,
+			Environment:       environment,
+		}
+	}
+	
+	return transformedDefaultVariations, nil
+}*/
+
+func createPayloadForDefaultOnVariations(defaultVariations []interface{}, variations []interface{}) ([]map[string]interface{}, error) {
+	patchPayload := make([]map[string]interface{}, len(defaultVariations))
+	for index, defaultVariation := range defaultVariations {
+		variation := defaultVariation.(map[string]interface{})
+
+		variationIndex, err := getDefaultVariationIndex(variations, variation["value"].(string))
+		if err != nil {
+			return nil, err
+		}
+
+		patchPayload[index] = map[string]interface{}{
+			"op":    "replace",
+			"path":  fmt.Sprintf("/environments/%s/fallthrough/variation", variation["environment"].(string)),
+			"value": variationIndex,
+		}
+	}
+	return patchPayload, nil
+} 
+
+func createPayloadForDefaultOffVariations(defaultOffVariations []interface{}, variations []interface{}) ([]map[string]interface{}, error) {
+	patchPayload := make([]map[string]interface{}, len(defaultOffVariations))
+	for index, defaultOffVariation := range defaultOffVariations {
+		variation := defaultOffVariation.(map[string]interface{})
+
+		variationIndex, err := getDefaultOffVariationIndex(variations, variation["value"].(string))
+		if err != nil {
+			return nil, err
+		}
+		patchPayload[index] = map[string]interface{}{
+			"op":    "replace",
+			"path":  fmt.Sprintf("/environments/%s/offVariation", variation["environment"].(string)),
+			"value": variationIndex,
+		}
+	}
+	return patchPayload, nil
+} 
+
 func getDefaultOffVariationIndex(variations []interface{}, variationValue string) (int, error) {
-	if len(variationValue) > 0 {
-		return getVariationIndex(variations, variationValue)
+	if len(variations) > 0 {
+		if len(variationValue) > 0 {
+			return getVariationIndex(variations, variationValue)
+		}
 	}
 	return 0, nil
 }
@@ -524,4 +606,13 @@ func transformCustomPropertiesFromLaunchDarklyFormat(properties map[string]JsonC
 	}
 
 	return transformed
+}
+
+
+func validateOrDefaultToBoolean(variationsKind string) string {
+	if len(variationsKind) > 0 {
+		return variationsKind
+	}
+
+	return DEFAULT_VARIATIONS_KIND
 }
