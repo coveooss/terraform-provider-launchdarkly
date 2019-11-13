@@ -398,8 +398,7 @@ func createPayloadForDefaultOffTargeting(defaultOffTargetingRules []interface{},
 	return patchPayload, nil
 } 
 
-
-func getDefaultVariationIndex(variations []interface{}, variationValue string) (int, error) {
+func getDefaultOffVariationIndex(variations []interface{}, variationValue string) (int, error) {
 	if len(variations) > 0 {
 		if len(variationValue) > 0 {
 			return getVariationIndex(variations, variationValue)
@@ -409,7 +408,7 @@ func getDefaultVariationIndex(variations []interface{}, variationValue string) (
 	return 1, nil
 }
 
-func getDefaultOffVariationIndex(variations []interface{}, variationValue string) (int, error) {
+func getDefaultVariationIndex(variations []interface{}, variationValue string) (int, error) {
 	if len(variations) > 0 {
 		if len(variationValue) > 0 {
 			return getVariationIndex(variations, variationValue)
