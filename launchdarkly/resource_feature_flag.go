@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sort"
+	"reflect"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -170,6 +172,8 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	defaultTargetingRule := d.Get("default_targeting_rule").([]interface{})
 	defaultOffTargetingRule := d.Get("default_off_targeting_rule").([]interface{})
 	customProperties := d.Get("custom_properties").([]interface{})
+	transformedTags := make([]string, len(tags))
+	sort.Strings(transformedTags)
 
 	transformedVariations, err := transformVariationsFromTerraformFormat(variations, variationsKind)
 	if err != nil {
@@ -222,7 +226,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	d.Set("description", description)
 	d.Set("temporary", temporary)
 	d.Set("include_in_snippet", includeInSnippet)
-	d.Set("tags", tags)
+	d.Set("tags", transformedTags)
 	d.Set("variations", variations)
 	d.Set("custom_properties", customProperties)
 	d.Set("default_targeting_rule", defaultTargetingRule)
@@ -246,14 +250,17 @@ func resourceFeatureFlagRead(d *schema.ResourceData, m interface{}) error {
 	transformedVariations := transformVariationsFromLaunchDarklyFormat(response.Variations)
 	transformedCustomProperties := transformCustomPropertiesFromLaunchDarklyFormat(response.CustomProperties)
 
-
 	d.SetId(key)
 	d.Set("name", response.Name)
 	d.Set("key", response.Key)
 	d.Set("description", response.Description)
 	d.Set("temporary", response.Temporary)
 	d.Set("include_in_snippet", response.IncludeInSnippet)
-	d.Set("tags", response.Tags)
+	// We don't update the state if it contains the same tags as Launchdarkly (regardless of their ordering)
+	if !reflect.DeepEqual(transformTagsFromTerraformFormat(d.Get("tags").([]interface{})), response.Tags) {
+		d.Set("tags", response.Tags)
+	}
+
 	// This is a hack to prevent recreating a feature flag when it was created with an older
 	// version of the provider that didn't supported specifying the variations kind
 	if response.VariationsKind == VARIATIONS_BOOLEAN_KIND {
@@ -301,7 +308,7 @@ func resourceFeatureFlagUpdate(resourceData *schema.ResourceData, m interface{})
 	}
 
 	targetingPayload := append(defaultTargetingRulePayload, defaultOffTargetingRulePayload...)
-	
+
 	mainPayload := []map[string]interface{}{{
 		"op":    "replace",
 		"path":  "/name",
@@ -357,6 +364,7 @@ func transformTagsFromTerraformFormat(tags []interface{}) []string {
 	for index, value := range tags {
 		transformed[index] = value.(string)
 	}
+	sort.Strings(transformed)
 
 	return transformed
 }
