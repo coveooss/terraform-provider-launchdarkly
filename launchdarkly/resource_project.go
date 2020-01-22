@@ -110,7 +110,7 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": name,
 	}}
 
-	_, err := client.Patch(getProjectUrl(d.Id()), payload, []int{200})
+	_, err := client.Patch(getProjectUrl(d.Id()), payload, []int{200}, 0)
 	if err != nil {
 		return err
 	}
