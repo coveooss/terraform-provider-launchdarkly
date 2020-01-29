@@ -140,7 +140,7 @@ func resourceEnvironmentUpdate(d *schema.ResourceData, m interface{}) error {
 		"value": color,
 	}}
 
-	_, err := client.Patch(getEnvironmentUrl(project, d.Id()), payload, []int{200})
+	_, err := client.Patch(getEnvironmentUrl(project, d.Id()), payload, []int{200}, 0)
 	if err != nil {
 		return err
 	}

@@ -17,6 +17,7 @@ const VARIATIONS_STRING_KIND = "string"
 const VARIATIONS_NUMBER_KIND = "number"
 const VARIATIONS_BOOLEAN_KIND = "boolean"
 const DEFAULT_VARIATIONS_KIND = VARIATIONS_BOOLEAN_KIND
+const NUMBER_OF_RETRY = 3
 
 func resourceFeatureFlag() *schema.Resource {
 	return &schema.Resource{
@@ -214,7 +215,7 @@ func resourceFeatureFlagCreate(d *schema.ResourceData, m interface{}) error {
 	patchPayload := append(defaultTargetinRulePayload, offOffTargetingRulePayload...)
 
 	if len(patchPayload) > 0 {
-		_, err = client.Patch(getFlagUrl(project, key), patchPayload, []int{200})
+		_, err = client.Patch(getFlagUrl(project, key), patchPayload, []int{200}, NUMBER_OF_RETRY)
 		if err != nil {
 			return err
 		}
@@ -337,7 +338,7 @@ func resourceFeatureFlagUpdate(resourceData *schema.ResourceData, m interface{})
 
 	payload := append(mainPayload, targetingPayload...)
 
-	_, err = client.Patch(getFlagUrl(project, resourceData.Id()), payload, []int{200})
+	_, err = client.Patch(getFlagUrl(project, resourceData.Id()), payload, []int{200}, NUMBER_OF_RETRY)
 	if err != nil {
 		return err
 	}
@@ -512,55 +513,63 @@ func applyChangesToVariations(resourceData *schema.ResourceData, client Client) 
 
 	//Remove variations
 	if newNumberOfVariation < actualNumberOfVariation {
+		var payloadValue []interface{} = make([]interface{}, actualNumberOfVariation - newNumberOfVariation)
+
 		for i := actualNumberOfVariation - 1; i >= newNumberOfVariation; i-- {
-			payloadValue := []map[string]interface{}{{
+			removeValue := map[string]interface{}{ 
 				"op":   "remove",
 				"path": fmt.Sprintf("/variations/%d", i),
-			}}
-
-			_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200})
-			if err != nil {
-				return err
 			}
+			payloadValue[i] = removeValue
 		}
-	}
 
-	//Update values off existing variations
-	for i := 0; i <= actualNumberOfVariation-1; i++ {
-		payloadValue := []map[string]interface{}{{
-			"op":    "replace",
-			"path":  fmt.Sprintf("/variations/%d/value", i),
-			"value": transformedVariations[i].Value,
-		}, {
-			"op":    "replace",
-			"path":  fmt.Sprintf("/variations/%d/name", i),
-			"value": transformedVariations[i].Name,
-		},{
-			"op":    "replace",
-			"path":  fmt.Sprintf("/variations/%d/description", i),
-			"value": transformedVariations[i].Description,
-		}}
-
-		_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200})
+		_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200}, NUMBER_OF_RETRY)
 		if err != nil {
 			return err
 		}
 	}
 
+	//Update values off existing variations
+	var payloadValue []interface{} = make([]interface{}, 3*actualNumberOfVariation)
+	for i := 0; i <= actualNumberOfVariation-1; i++ {
+		replaceValue := map[string]interface{}{
+			"op":    "replace",
+			"path":  fmt.Sprintf("/variations/%d/value", i),
+			"value": transformedVariations[i].Value,
+		}
+		replaceName := map[string]interface{}{
+			"op":    "replace",
+			"path":  fmt.Sprintf("/variations/%d/name", i),
+			"value": transformedVariations[i].Name,
+		}
+		replaceDescription := map[string]interface{}{
+			"op":    "replace",
+			"path":  fmt.Sprintf("/variations/%d/description", i),
+			"value": transformedVariations[i].Description,
+		}
+		payloadValue[i*3] = replaceValue
+		payloadValue[(i*3)+1] = replaceName
+		payloadValue[(i*3)+2] = replaceDescription
+	}
+	_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200}, NUMBER_OF_RETRY)
+	if err != nil {
+		return err
+	}
+
 	//Add new variations
 	if newNumberOfVariation > actualNumberOfVariation {
+		var payloadValue []interface{} = make([]interface{}, newNumberOfVariation - actualNumberOfVariation)
 		for i := actualNumberOfVariation; i < newNumberOfVariation; i++ {
 
-			payloadValue := []map[string]interface{}{{
+			payloadValue[i] = map[string]interface{}{
 				"op":    "add",
 				"path":  fmt.Sprintf("/variations/%d", i),
 				"value": transformedVariations[i],
-			}}
-
-			_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200})
-			if err != nil {
-				return err
 			}
+		}
+		_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200}, NUMBER_OF_RETRY)
+		if err != nil {
+			return err
 		}
 	}
 
