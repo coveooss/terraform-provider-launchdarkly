@@ -513,66 +513,89 @@ func applyChangesToVariations(resourceData *schema.ResourceData, client Client) 
 
 	//Remove variations
 	if newNumberOfVariation < actualNumberOfVariation {
-		var payloadValue []interface{} = make([]interface{}, actualNumberOfVariation - newNumberOfVariation)
-
-		for i := actualNumberOfVariation - 1; i >= newNumberOfVariation; i-- {
+		var deletePayloadValue []interface{} = make([]interface{}, actualNumberOfVariation - newNumberOfVariation)
+		for i := 0; i < len(deletePayloadValue); i++ {
 			removeValue := map[string]interface{}{ 
 				"op":   "remove",
-				"path": fmt.Sprintf("/variations/%d", i),
+				"path": fmt.Sprintf("/variations/%d", actualNumberOfVariation - 1),
 			}
-			payloadValue[i] = removeValue
+			deletePayloadValue[i] = removeValue
+			actualNumberOfVariation--
 		}
-
-		_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200}, NUMBER_OF_RETRY)
+		_, err = client.Patch(getFlagUrl(project, key), deletePayloadValue, []int{200}, NUMBER_OF_RETRY)
 		if err != nil {
 			return err
 		}
-	}
-
-	//Update values off existing variations
-	var payloadValue []interface{} = make([]interface{}, 3*actualNumberOfVariation)
-	for i := 0; i <= actualNumberOfVariation-1; i++ {
-		replaceValue := map[string]interface{}{
-			"op":    "replace",
-			"path":  fmt.Sprintf("/variations/%d/value", i),
-			"value": transformedVariations[i].Value,
+		//Update values off existing variations that were not delete
+		var updatePayloadValue []interface{} = make([]interface{}, 3*newNumberOfVariation)
+		for i := 0; i < newNumberOfVariation; i++ {
+			replaceValue := map[string]interface{}{
+				"op":    "replace",
+				"path":  fmt.Sprintf("/variations/%d/value", i),
+				"value": transformedVariations[i].Value,
+			}
+			replaceName := map[string]interface{}{
+				"op":    "replace",
+				"path":  fmt.Sprintf("/variations/%d/name", i),
+				"value": transformedVariations[i].Name,
+			}
+			replaceDescription := map[string]interface{}{
+				"op":    "replace",
+				"path":  fmt.Sprintf("/variations/%d/description", i),
+				"value": transformedVariations[i].Description,
+			}
+			updatePayloadValue[i*3] = replaceValue
+			updatePayloadValue[(i*3)+1] = replaceName
+			updatePayloadValue[(i*3)+2] = replaceDescription
 		}
-		replaceName := map[string]interface{}{
-			"op":    "replace",
-			"path":  fmt.Sprintf("/variations/%d/name", i),
-			"value": transformedVariations[i].Name,
+		_, err = client.Patch(getFlagUrl(project, key), updatePayloadValue, []int{200}, NUMBER_OF_RETRY)
+		if err != nil {
+			return err
 		}
-		replaceDescription := map[string]interface{}{
-			"op":    "replace",
-			"path":  fmt.Sprintf("/variations/%d/description", i),
-			"value": transformedVariations[i].Description,
-		}
-		payloadValue[i*3] = replaceValue
-		payloadValue[(i*3)+1] = replaceName
-		payloadValue[(i*3)+2] = replaceDescription
-	}
-	_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200}, NUMBER_OF_RETRY)
-	if err != nil {
-		return err
 	}
 
 	//Add new variations
-	if newNumberOfVariation > actualNumberOfVariation {
-		var payloadValue []interface{} = make([]interface{}, newNumberOfVariation - actualNumberOfVariation)
-		for i := actualNumberOfVariation; i < newNumberOfVariation; i++ {
-
-			payloadValue[i] = map[string]interface{}{
+	if newNumberOfVariation >= actualNumberOfVariation {
+		//Update values off existing variations
+		var updatePayloadValue []interface{} = make([]interface{}, 3*actualNumberOfVariation)
+		for i := 0; i < actualNumberOfVariation; i++ {
+			replaceValue := map[string]interface{}{
+				"op":    "replace",
+				"path":  fmt.Sprintf("/variations/%d/value", i),
+				"value": transformedVariations[i].Value,
+			}
+			replaceName := map[string]interface{}{
+				"op":    "replace",
+				"path":  fmt.Sprintf("/variations/%d/name", i),
+				"value": transformedVariations[i].Name,
+			}
+			replaceDescription := map[string]interface{}{
+				"op":    "replace",
+				"path":  fmt.Sprintf("/variations/%d/description", i),
+				"value": transformedVariations[i].Description,
+			}
+			updatePayloadValue[i*3] = replaceValue
+			updatePayloadValue[(i*3)+1] = replaceName
+			updatePayloadValue[(i*3)+2] = replaceDescription
+		}
+		_, err = client.Patch(getFlagUrl(project, key), updatePayloadValue, []int{200}, NUMBER_OF_RETRY)
+		if err != nil {
+			return err
+		}
+		
+		var createPayloadValue []interface{} = make([]interface{}, newNumberOfVariation - actualNumberOfVariation)
+		for i := 0; i < len(createPayloadValue); i++ {
+			createPayloadValue[i] = map[string]interface{}{
 				"op":    "add",
-				"path":  fmt.Sprintf("/variations/%d", i),
-				"value": transformedVariations[i],
+				"path":  fmt.Sprintf("/variations/%d", actualNumberOfVariation + i),
+				"value": transformedVariations[actualNumberOfVariation + i],
 			}
 		}
-		_, err = client.Patch(getFlagUrl(project, key), payloadValue, []int{200}, NUMBER_OF_RETRY)
+		_, err = client.Patch(getFlagUrl(project, key), createPayloadValue, []int{200}, NUMBER_OF_RETRY)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
