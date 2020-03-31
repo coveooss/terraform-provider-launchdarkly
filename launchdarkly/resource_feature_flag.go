@@ -519,13 +519,18 @@ func applyChangesToVariations(resourceData *schema.ResourceData, client Client) 
 				"op":   "remove",
 				"path": fmt.Sprintf("/variations/%d", actualNumberOfVariation - 1),
 			}
+<<<<<<< HEAD
 			deletePayloadValue[i] = removeValue
+=======
+			payloadValue[i - newNumberOfVariation] = removeValue
+>>>>>>> 5c3ca04ebda9635d47c785641a45864c757081ae
 			actualNumberOfVariation--
 		}
 		_, err = client.Patch(getFlagUrl(project, key), deletePayloadValue, []int{200}, NUMBER_OF_RETRY)
 		if err != nil {
 			return err
 		}
+<<<<<<< HEAD
 		//Update values off existing variations that wont be delete
 		var updatePayloadValue []interface{} = make([]interface{}, 3*newNumberOfVariation)
 		for i := 0; i < newNumberOfVariation; i++ {
@@ -547,6 +552,22 @@ func applyChangesToVariations(resourceData *schema.ResourceData, client Client) 
 			updatePayloadValue[i*3] = replaceValue
 			updatePayloadValue[(i*3)+1] = replaceName
 			updatePayloadValue[(i*3)+2] = replaceDescription
+=======
+	}
+
+	//Update values off existing variations
+	var payloadValue []interface{} = make([]interface{}, 3*actualNumberOfVariation)
+	for i := 0; i < actualNumberOfVariation; i++ {
+		replaceValue := map[string]interface{}{
+			"op":    "replace",
+			"path":  fmt.Sprintf("/variations/%d/value", i),
+			"value": transformedVariations[i].Value,
+		}
+		replaceName := map[string]interface{}{
+			"op":    "replace",
+			"path":  fmt.Sprintf("/variations/%d/name", i),
+			"value": transformedVariations[i].Name,
+>>>>>>> 5c3ca04ebda9635d47c785641a45864c757081ae
 		}
 		_, err = client.Patch(getFlagUrl(project, key), updatePayloadValue, []int{200}, NUMBER_OF_RETRY)
 		if err != nil {
@@ -555,6 +576,7 @@ func applyChangesToVariations(resourceData *schema.ResourceData, client Client) 
 	}
 
 	//Add new variations
+<<<<<<< HEAD
 	if newNumberOfVariation >= actualNumberOfVariation {
 		//Update values off existing variations
 		var updatePayloadValue []interface{} = make([]interface{}, 3*actualNumberOfVariation)
@@ -586,6 +608,12 @@ func applyChangesToVariations(resourceData *schema.ResourceData, client Client) 
 		var createPayloadValue []interface{} = make([]interface{}, newNumberOfVariation - actualNumberOfVariation)
 		for i := 0; i < len(createPayloadValue); i++ {
 			createPayloadValue[i] = map[string]interface{}{
+=======
+	if newNumberOfVariation > actualNumberOfVariation {
+		var payloadValue []interface{} = make([]interface{}, newNumberOfVariation - actualNumberOfVariation)
+		for i := 0; i < len(payloadValue); i++ {
+			payloadValue[i] = map[string]interface{}{
+>>>>>>> 5c3ca04ebda9635d47c785641a45864c757081ae
 				"op":    "add",
 				"path":  fmt.Sprintf("/variations/%d", actualNumberOfVariation + i),
 				"value": transformedVariations[actualNumberOfVariation + i],
