@@ -526,7 +526,7 @@ func applyChangesToVariations(resourceData *schema.ResourceData, client Client) 
 		if err != nil {
 			return err
 		}
-		//Update values off existing variations that wont be delete
+		//Update values off existing variations that were not delete
 		var updatePayloadValue []interface{} = make([]interface{}, 3*newNumberOfVariation)
 		for i := 0; i < newNumberOfVariation; i++ {
 			replaceValue := map[string]interface{}{
@@ -596,7 +596,6 @@ func applyChangesToVariations(resourceData *schema.ResourceData, client Client) 
 			return err
 		}
 	}
-
 	return nil
 }
 
